@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webook
+
+spec: # Deployment 规格说明
+  # Pod 的数量
+  replicas: 3
+  selector: # 筛选器，根据（什么）来筛选
+    matchLabels: # 这里根据的是 Labels （标签） 来筛选｜常用的还有根据表达式筛选 matchExpressions
+      app: webook
+  template: # 在不同的 kind 对应不同的内容，Deployment 中对应的是 Pod 的模版
+    metadata:
+      labels:
+        app: webook # 要与 matchLabels 的 app 匹配
+    spec: # 这个是 Deployment 管理的 Pod 的模版
+      containers: # Pod 里运行的所有的 containers，正常来说，一个 Pod 一个 containers
+        - name: webook
+          image: jayleonc/webook:v0.0.1 # OCI 标准
+          ports:
+            - containerPort: 8080
