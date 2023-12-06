@@ -15,4 +15,7 @@ type User struct {
 
 	// UTC 0 的时区
 	Ctime time.Time
+	Utime time.Time
+
+	WechatInfo
 }

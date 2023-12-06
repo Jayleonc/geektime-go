@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -21,6 +22,7 @@ type UserRepository interface {
 	FindByPhone(ctx context.Context, phone string) (domain.User, error)
 	FindById(ctx context.Context, uid int64) (domain.User, error)
 	UpdateNonZeroFields(ctx context.Context, user domain.User) error
+	FindByWechat(ctx *gin.Context, id string) (domain.User, error)
 }
 
 type CachedUserRepository struct {
@@ -123,6 +125,12 @@ func (u *CachedUserRepository) toDomain(user dao.User) domain.User {
 		Nickname: user.Nickname,
 		AboutMe:  user.AboutMe,
 		Birthday: time.UnixMilli(user.Birthday),
+		Ctime:    time.UnixMilli(user.Ctime),
+		Utime:    time.UnixMilli(user.Utime),
+		WechatInfo: domain.WechatInfo{
+			UnionId: user.WechatUnionId.String,
+			OpenId:  user.WechatOpenId.String,
+		},
 	}
 }
 
@@ -137,5 +145,22 @@ func (u *CachedUserRepository) toEntity(user domain.User) dao.User {
 			Valid:  user.Phone != "",
 		},
 		Password: user.Password,
+		Birthday: user.Birthday.UnixMilli(),
+		WechatOpenId: sql.NullString{
+			String: user.OpenId,
+			Valid:  user.OpenId != "",
+		},
+		WechatUnionId: sql.NullString{
+			String: user.UnionId,
+			Valid:  user.UnionId != "",
+		},
 	}
+}
+
+func (u *CachedUserRepository) FindByWechat(ctx *gin.Context, openid string) (domain.User, error) {
+	ue, err := u.dao.FindByWechat(ctx, openid)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return u.toDomain(ue), nil
 }

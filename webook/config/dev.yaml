@@ -1,0 +1,6 @@
+redis:
+  addr: "175.178.58.198:16379"
+  password: "jayleonc"
+
+db:
+  dsn: "root:jayleonc@tcp(175.178.58.198:33306)/geektime"

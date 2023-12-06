@@ -4,8 +4,10 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,6 +21,7 @@ type UserService interface {
 	Login(ctx context.Context, email, password string) (domain.User, error)
 	FindById(ctx context.Context, uid int64) (domain.User, error)
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
+	FindOrCreateByWechat(ctx *gin.Context, wechatInfo domain.WechatInfo) (domain.User, error)
 }
 
 type userService struct {
@@ -69,6 +72,7 @@ func (u *userService) FindOrCreate(ctx context.Context, phone string) (domain.Us
 	if !errors.Is(err, repository.ErrUserNotFound) {
 		return user, err
 	}
+	zap.L().Info("新用户", zap.String("phone", phone))
 	// 如果没有找到用户，注册一个
 	err = u.repo.Create(ctx, domain.User{
 		Phone: phone,
@@ -85,4 +89,21 @@ func (u *userService) FindOrCreate(ctx context.Context, phone string) (domain.Us
 	// 解决思路：强制走主表查询
 	return u.repo.FindByPhone(ctx, phone)
 
+}
+
+func (u *userService) FindOrCreateByWechat(ctx *gin.Context, wechatInfo domain.WechatInfo) (domain.User, error) {
+	user, err := u.repo.FindByWechat(ctx, wechatInfo.OpenId)
+	if err != repository.ErrUserNotFound {
+		return user, err
+	}
+	// 这边就是意味着是一个新用户
+	// JSON 格式的 wechatInfo
+	//svc.logger.Info("新用户", zap.Any("wechatInfo", wechatInfo))
+	err = u.repo.Create(ctx, domain.User{
+		WechatInfo: wechatInfo,
+	})
+	if err != nil && err != repository.ErrDuplicateUser {
+		return domain.User{}, err
+	}
+	return u.repo.FindByWechat(ctx, wechatInfo.OpenId)
 }

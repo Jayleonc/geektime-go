@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"time"
@@ -20,6 +21,7 @@ type UserDAO interface {
 	FindById(ctx context.Context, uid int64) (User, error)
 	FindByPhone(ctx context.Context, phone string) (User, error)
 	UpdateById(ctx context.Context, entity User) error
+	FindByWechat(ctx *gin.Context, openid string) (User, error)
 }
 
 type GormUserDAO struct {
@@ -78,6 +80,12 @@ func (d *GormUserDAO) UpdateById(ctx context.Context, entity User) error {
 		}).Error
 }
 
+func (d *GormUserDAO) FindByWechat(ctx *gin.Context, openid string) (User, error) {
+	var user User
+	err := d.db.WithContext(ctx).Table(user.TableName()).Where("wechat_open_id = ?", openid).First(&user).Error
+	return user, err
+}
+
 type User struct {
 	Id int64 `gorm:"primaryKey,autoIncrement"`
 	// 代表这是一个可以为 NULL 的列
@@ -91,6 +99,9 @@ type User struct {
 
 	// 代表这是一个可以为 NULL 的列
 	Phone sql.NullString `gorm:"unique"`
+
+	WechatOpenId  sql.NullString
+	WechatUnionId sql.NullString
 
 	// 时区，UTC 0 的毫秒数
 	// 创建时间

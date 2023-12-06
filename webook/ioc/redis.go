@@ -1,14 +1,28 @@
 package ioc
 
 import (
-	"github.com/jayleonc/geektime-go/webook/internal/config"
+	"context"
 	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 )
 
 func InitRedis() redis.Cmdable {
+	type Config struct {
+		Addr     string
+		Password string
+	}
+	c := Config{}
+	err := viper.UnmarshalKey("redis", &c)
+	if err != nil {
+		panic(err)
+	}
 	redisClint := redis.NewClient(&redis.Options{
-		Addr:     config.Config.Redis.Addr,
-		Password: config.Config.Redis.Password,
+		Addr:     c.Addr,
+		Password: c.Password,
 	})
+	err = redisClint.Ping(context.Background()).Err()
+	if err != nil {
+		panic(err)
+	}
 	return redisClint
 }

@@ -1,0 +1,6 @@
+redis:
+  addr: "localhost:6379"
+  password: "jayleonc"
+
+db:
+  dsn: "root:jayleonc@tcp(localhost:3306)/geektime"

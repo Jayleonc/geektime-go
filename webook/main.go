@@ -5,11 +5,16 @@ import (
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/internal/web/middleware"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	_ "github.com/spf13/viper/remote"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 func main() {
-
+	initViper()
+	initLogger()
 	server := InitWebServer()
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello 启动成功啦")
@@ -18,20 +23,24 @@ func main() {
 	server.Run(":8080")
 }
 
-//func initUserHdl(db *gorm.DB, redisClint redis.Cmdable, server *gin.Engine, codeSvc *service.codeService) {
-//	uc := cache.NewUserCache(redisClint)
-//	ud := dao.NewUserDAO(db)
-//	ur := repository.NewCachedUserRepository(ud, uc)
-//	us := service.NewUserService(ur)
-//	handler := web.NewUserHandler(us, codeSvc)
-//	handler.RegisterRoutes(server)
-//}
-//
-//func initCodeServer(redisClint redis.Cmdable) *service.codeService {
-//	cc := cache.NewCodeCache(redisClint)
-//	crepo := repository.NewCodeRepository(cc)
-//	return service.NewCodeService(crepo, ioc.InitSMSService())
-//}
+func initViper() {
+	c := pflag.String("config", "config/config.yaml", "配置文件路径")
+	pflag.Parse()
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(*c)
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func initLogger() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	zap.ReplaceGlobals(logger)
+}
 
 func useSessions(engine *gin.Engine) {
 	// 初始化 session，并设置校验中间件
@@ -43,4 +52,16 @@ func useSessions(engine *gin.Engine) {
 	//	panic(err)
 	//}
 	engine.Use(sessions.Sessions("ssid", store), login.CheckLogin())
+}
+
+func initViperRemote() {
+	err := viper.AddRemoteProvider("etcd3", "http://localhost:2379", "/webook")
+	if err != nil {
+		panic(err)
+	}
+	viper.SetConfigType("yaml")
+	err = viper.ReadRemoteConfig()
+	if err != nil {
+		panic(err)
+	}
 }
