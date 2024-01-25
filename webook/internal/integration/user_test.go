@@ -30,7 +30,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 		phone string
 
 		wantCode int
-		wantBody ginx.Result
+		wantBody ginx.Response
 	}{
 		{
 			name: "发送成功",
@@ -54,7 +54,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			},
 			phone:    "18174715374",
 			wantCode: http.StatusOK,
-			wantBody: ginx.Result{
+			wantBody: ginx.Response{
 				Code: 200,
 				Msg:  "发送成功",
 			},
@@ -68,7 +68,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			},
 			phone:    "",
 			wantCode: http.StatusOK,
-			wantBody: ginx.Result{
+			wantBody: ginx.Response{
 				Code: 4,
 				Msg:  "请输入手机号",
 			},
@@ -91,7 +91,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 			},
 			phone:    "18174715374",
 			wantCode: http.StatusOK,
-			wantBody: ginx.Result{
+			wantBody: ginx.Response{
 				Code: 400,
 				Msg:  "短信发送太频繁，请稍后再试",
 			},
@@ -117,7 +117,7 @@ func TestUserHandler_SendSMSCode(t *testing.T) {
 				return
 			}
 
-			var res ginx.Result
+			var res ginx.Response
 			err = json.NewDecoder(recorder.Body).Decode(&res)
 			assert.NoError(t, err)
 

@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/sessions/memstore"
 	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/internal/web/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
@@ -15,12 +16,28 @@ import (
 func main() {
 	initViper()
 	initLogger()
-	server := InitWebServer()
+	initPrometheus()
+	app := InitWebServer()
+	for _, consumer := range app.consumers {
+		err := consumer.Start()
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	server := app.web
 	server.GET("/hello", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "Hello 启动成功啦")
 	})
 
 	server.Run(":8080")
+}
+
+func initPrometheus() {
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":8081", nil)
+	}()
 }
 
 func initViper() {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"time"
@@ -21,7 +20,7 @@ type UserDAO interface {
 	FindById(ctx context.Context, uid int64) (User, error)
 	FindByPhone(ctx context.Context, phone string) (User, error)
 	UpdateById(ctx context.Context, entity User) error
-	FindByWechat(ctx *gin.Context, openid string) (User, error)
+	FindByWechat(ctx context.Context, openid string) (User, error)
 }
 
 type GormUserDAO struct {
@@ -68,9 +67,6 @@ func (d *GormUserDAO) FindByPhone(ctx context.Context, phone string) (User, erro
 
 func (d *GormUserDAO) UpdateById(ctx context.Context, entity User) error {
 
-	// 这种写法依赖于 GORM 的零值和主键更新特性
-	// Update 非零值 WHERE id = ?
-	//return dao.db.WithContext(ctx).Updates(&entity).Error
 	return d.db.WithContext(ctx).Model(&entity).Where("id = ?", entity.Id).
 		Updates(map[string]any{
 			"utime":    time.Now().UnixMilli(),
@@ -80,7 +76,7 @@ func (d *GormUserDAO) UpdateById(ctx context.Context, entity User) error {
 		}).Error
 }
 
-func (d *GormUserDAO) FindByWechat(ctx *gin.Context, openid string) (User, error) {
+func (d *GormUserDAO) FindByWechat(ctx context.Context, openid string) (User, error) {
 	var user User
 	err := d.db.WithContext(ctx).Table(user.TableName()).Where("wechat_open_id = ?", openid).First(&user).Error
 	return user, err

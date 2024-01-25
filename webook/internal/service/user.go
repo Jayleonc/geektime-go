@@ -4,7 +4,6 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"go.uber.org/zap"
@@ -21,11 +20,16 @@ type UserService interface {
 	Login(ctx context.Context, email, password string) (domain.User, error)
 	FindById(ctx context.Context, uid int64) (domain.User, error)
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
-	FindOrCreateByWechat(ctx *gin.Context, wechatInfo domain.WechatInfo) (domain.User, error)
+	FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error)
+	Update(ctx context.Context, u domain.User) error
 }
 
 type userService struct {
 	repo repository.UserRepository
+}
+
+func (u *userService) Update(ctx context.Context, user domain.User) error {
+	return u.repo.UpdateNonZeroFields(ctx, user)
 }
 
 func NewUserService(repo repository.UserRepository) UserService {
@@ -91,7 +95,7 @@ func (u *userService) FindOrCreate(ctx context.Context, phone string) (domain.Us
 
 }
 
-func (u *userService) FindOrCreateByWechat(ctx *gin.Context, wechatInfo domain.WechatInfo) (domain.User, error) {
+func (u *userService) FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error) {
 	user, err := u.repo.FindByWechat(ctx, wechatInfo.OpenId)
 	if err != repository.ErrUserNotFound {
 		return user, err

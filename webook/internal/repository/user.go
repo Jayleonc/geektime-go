@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -22,7 +21,7 @@ type UserRepository interface {
 	FindByPhone(ctx context.Context, phone string) (domain.User, error)
 	FindById(ctx context.Context, uid int64) (domain.User, error)
 	UpdateNonZeroFields(ctx context.Context, user domain.User) error
-	FindByWechat(ctx *gin.Context, id string) (domain.User, error)
+	FindByWechat(ctx context.Context, id string) (domain.User, error)
 }
 
 type CachedUserRepository struct {
@@ -110,10 +109,11 @@ func (u *CachedUserRepository) UpdateNonZeroFields(ctx context.Context,
 		return err
 	}
 	// 延迟一秒
-	time.AfterFunc(time.Second, func() {
-		_ = u.cache.Del(ctx, user.Id)
-	})
-	return u.cache.Del(ctx, user.Id)
+	//time.AfterFunc(time.Second, func() {
+	//	_ = u.cache.Del(ctx, user.Id)
+	//})
+	//return u.cache.Del(ctx, user.Id)
+	return nil
 }
 
 func (u *CachedUserRepository) toDomain(user dao.User) domain.User {
@@ -154,10 +154,13 @@ func (u *CachedUserRepository) toEntity(user domain.User) dao.User {
 			String: user.UnionId,
 			Valid:  user.UnionId != "",
 		},
+		AboutMe:  user.AboutMe,
+		Nickname: user.Nickname,
+		Id:       user.Id,
 	}
 }
 
-func (u *CachedUserRepository) FindByWechat(ctx *gin.Context, openid string) (domain.User, error) {
+func (u *CachedUserRepository) FindByWechat(ctx context.Context, openid string) (domain.User, error) {
 	ue, err := u.dao.FindByWechat(ctx, openid)
 	if err != nil {
 		return domain.User{}, err

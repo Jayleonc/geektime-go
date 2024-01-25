@@ -3,4 +3,9 @@ redis:
   password: "jayleonc"
 
 db:
-  dsn: "root:jayleonc@tcp(175.178.58.198:33306)/geektime"
+#  dsn: "root:jayleonc@tcp(175.178.58.198:33306)/geektime"
+  dsn: "root:jayleonc@tcp(localhost:3306)/geektime"
+
+kafka:
+  addrs:
+    - "175.178.58.198:9094"

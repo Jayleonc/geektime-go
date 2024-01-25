@@ -3,8 +3,8 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	"github.com/jayleonc/geektime-go/webook/internal/events/article"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -14,10 +14,20 @@ import (
 	"github.com/jayleonc/geektime-go/webook/ioc"
 )
 
-func InitWebServer() *gin.Engine {
+var interactiveSvcSet = wire.NewSet(
+	dao.NewGORMInteractiveDAO,
+	cache.NewInteractiveRedisCache,
+	repository.NewCachedInteractiveRepository,
+	service.NewInteractiveService,
+)
+
+func InitWebServer() *App {
 	wire.Build(
 		// 第三方依赖
 		ioc.InitRedis, ioc.InitDB, ioc.InitLogger,
+		ioc.InitKafka,
+		ioc.RegisterConsumers,
+		ioc.NewSyncProducer,
 		// DAO 部分
 		dao.NewUserDAO,
 
@@ -25,6 +35,12 @@ func InitWebServer() *gin.Engine {
 		cache.NewCodeCache,
 		//cache.NewLocalCodeCache,
 		cache.NewUserCache,
+		cache.NewArticleRedisCache,
+
+		article.NewInteractiveReadEventConsumer,
+		article.NewKafkaProducer,
+
+		interactiveSvcSet,
 
 		// repository 部分
 		repository.NewCachedUserRepository,
@@ -36,12 +52,19 @@ func InitWebServer() *gin.Engine {
 		service.NewUserService,
 		service.NewCodeService,
 
+		dao.NewArticleGORMDAO,
+		repository.NewCachedArticleRepository,
+		service.NewArticleService,
+		web.NewArticleHandler,
+
 		// handler 部分
 		ijwt.NewRedisJWTHandler,
 		web.NewUserHandler,
 		web.NewOAuth2WechatHandler,
 		ioc.InitGinMiddlewares,
 		ioc.InitWebServer,
+
+		wire.Struct(new(App), "*"),
 	)
-	return gin.Default()
+	return new(App)
 }

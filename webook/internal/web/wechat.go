@@ -40,7 +40,7 @@ func (h *OAuth2WechatHandler) OAuth2URL(ctx *gin.Context) {
 	state := uuid.New()
 	code, err := h.svc.AuthURL(ctx, state)
 	if err != nil {
-		ctx.JSON(http.StatusOK, ginx.Result{
+		ctx.JSON(http.StatusOK, ginx.Response{
 			Msg:  "构造跳转URL失败",
 			Code: 5,
 		})
@@ -48,12 +48,12 @@ func (h *OAuth2WechatHandler) OAuth2URL(ctx *gin.Context) {
 	}
 	err = h.setStateToken(ctx, state)
 	if err != nil {
-		ctx.JSON(http.StatusOK, ginx.Result{
+		ctx.JSON(http.StatusOK, ginx.Response{
 			Msg:  "服务器异常",
 			Code: 5,
 		})
 	}
-	ctx.JSON(http.StatusOK, ginx.Result{
+	ctx.JSON(http.StatusOK, ginx.Response{
 		Data: code,
 	})
 }
@@ -61,7 +61,7 @@ func (h *OAuth2WechatHandler) OAuth2URL(ctx *gin.Context) {
 func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 	err := h.verifyState(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusOK, ginx.Result{
+		ctx.JSON(http.StatusOK, ginx.Response{
 			Msg:  "非法请求",
 			Code: 4,
 		})
@@ -70,7 +70,7 @@ func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 	code := ctx.Query("code")
 	wechatInfo, err := h.svc.VerifyCode(ctx, code)
 	if err != nil {
-		ctx.JSON(http.StatusOK, ginx.Result{
+		ctx.JSON(http.StatusOK, ginx.Response{
 			Msg:  "授权码有误",
 			Code: 4,
 		})
@@ -79,7 +79,7 @@ func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 
 	u, err := h.userSvc.FindOrCreateByWechat(ctx, wechatInfo)
 	if err != nil {
-		ctx.JSON(http.StatusOK, ginx.Result{
+		ctx.JSON(http.StatusOK, ginx.Response{
 			Msg:  "系统错误",
 			Code: 5,
 		})
@@ -91,7 +91,7 @@ func (h *OAuth2WechatHandler) Callback(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ginx.Result{
+	ctx.JSON(http.StatusOK, ginx.Response{
 		Msg: "OK",
 	})
 	return

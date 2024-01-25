@@ -174,7 +174,7 @@ func TestUserHandler_SignUp(t *testing.T) {
 			defer ctrl.Finish()
 
 			userService, codeService := tc.mock(ctrl)
-			hdl := NewUserHandler(userService, codeService)
+			hdl := NewUserHandler(userService, codeService, nil)
 
 			server := gin.Default()
 			hdl.RegisterRoutes(server)
@@ -200,7 +200,7 @@ func TestUserEmailPattern(t *testing.T) {
 		{name: "合法email", email: "Jayleonc@163.com", match: true},
 	}
 
-	handler := NewUserHandler(nil, nil)
+	handler := NewUserHandler(nil, nil, nil)
 
 	for _, v := range testCases {
 		t.Run(v.name, func(t *testing.T) {
