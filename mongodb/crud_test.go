@@ -23,7 +23,7 @@ func TestMongo(t *testing.T) {
 	}
 
 	clientOptions := options.Client().
-		ApplyURI("mongodb://root:Jayleonc@175.178.58.198:27017")
+		ApplyURI("mongodb://root:Jayleonc@localhsot:27017")
 	clientOptions.SetMonitor(monitor)
 	// 连接到MongoDB
 	client, err := mongo.Connect(ctx, clientOptions)

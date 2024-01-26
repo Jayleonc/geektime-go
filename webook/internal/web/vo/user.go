@@ -10,8 +10,9 @@ type UserEditReq struct {
 }
 
 type UserSignUpReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email           string `json:"email"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
 }
 
 type UserLoginReq struct {

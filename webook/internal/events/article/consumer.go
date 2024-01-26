@@ -19,14 +19,14 @@ func NewInteractiveReadEventConsumer(repo repository.InteractiveRepository, clie
 }
 
 // Start 负责初始化 Kafka 消费者组并开始消费消息
-func (r *InteractiveReadEventConsumer) Start() error {
+func (r *InteractiveReadEventConsumer) StartV1() error {
 	cgroup, err := sarama.NewConsumerGroupFromClient("interactive", r.client)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		er := cgroup.Consume(context.Background(), []string{"read_article"}, saramax.NewBatchHandler[ReadEvent](r.BatchConsume))
+		er := cgroup.Consume(context.Background(), []string{ReadEventTopic}, saramax.NewBatchHandler[ReadEvent](r.BatchConsume))
 		if er != nil {
 			fmt.Println("退出消费循环", er)
 		}
@@ -36,14 +36,14 @@ func (r *InteractiveReadEventConsumer) Start() error {
 }
 
 // StartV1 负责初始化 Kafka 消费者组并开始消费消息，单个消费
-func (r *InteractiveReadEventConsumer) StartV1() error {
+func (r *InteractiveReadEventConsumer) Start() error {
 	cgroup, err := sarama.NewConsumerGroupFromClient("interactive", r.client)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		er := cgroup.Consume(context.Background(), []string{"read_article"}, saramax.NewHandler[ReadEvent](r.Consume))
+		er := cgroup.Consume(context.Background(), []string{ReadEventTopic}, saramax.NewHandler[ReadEvent](r.Consume))
 		if er != nil {
 			fmt.Println("退出消费循环", er)
 		}
@@ -68,6 +68,9 @@ func (r *InteractiveReadEventConsumer) BatchConsume(msgs []*sarama.ConsumerMessa
 func (r *InteractiveReadEventConsumer) Consume(msg *sarama.ConsumerMessage, t ReadEvent) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	fmt.Println("Kafka 执行 incrReadCnt")
 	return r.repo.IncrReadCnt(ctx, "article", t.Aid)
+}
+
+func (r *InteractiveReadEventConsumer) GetClient() sarama.Client {
+	return r.client
 }

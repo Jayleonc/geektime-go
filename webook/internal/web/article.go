@@ -164,6 +164,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 		return er
 	})
 
+	// todo 这里有 bug
 	eg.Go(func() error {
 		var er error
 		intr, er = h.intrSvc.Get(ctx, h.biz, id, uc.Uid)

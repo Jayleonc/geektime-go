@@ -2,13 +2,14 @@ package localsms
 
 import (
 	"context"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
 	"log"
 )
 
 type Service struct {
 }
 
-func NewService() *Service {
+func NewService() sms.Service {
 	return &Service{}
 }
 

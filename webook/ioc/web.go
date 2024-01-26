@@ -6,8 +6,10 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/web"
 	ijwt "github.com/jayleonc/geektime-go/webook/internal/web/jwt"
 	"github.com/jayleonc/geektime-go/webook/internal/web/middleware"
+	"github.com/jayleonc/geektime-go/webook/pkg/ginx"
 	"github.com/jayleonc/geektime-go/webook/pkg/ginx/middleware/prometheus"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
+	prometheus2 "github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -28,6 +30,12 @@ func InitGinMiddlewares(redisClient redis.Cmdable, jwtHdl ijwt.Handler, l logger
 		Name:      "gin_http",
 		Help:      "统计 Gin 的 http 请求",
 	}
+	ginx.InitCounter(prometheus2.CounterOpts{
+		Namespace: "geektime_jayleonc",
+		Subsystem: "webook",
+		Name:      "biz_code",
+		Help:      "统计业务错误码",
+	})
 	return []gin.HandlerFunc{
 		cors.New(cors.Config{
 			AllowCredentials: true,

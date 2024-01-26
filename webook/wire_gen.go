@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/jayleonc/geektime-go/webook/internal/events/article"
+	"github.com/jayleonc/geektime-go/webook/internal/events/article/prometheus"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -46,7 +47,7 @@ func InitWebServer() *App {
 	articleRepository := repository.NewCachedArticleRepository(articleDAO, articleCache, userRepository)
 	client := ioc.InitKafka()
 	syncProducer := ioc.NewSyncProducer(client)
-	producer := article.NewKafkaProducer(syncProducer)
+	producer := ioc.NewKafkaProducerWithMetricsDecorator(syncProducer)
 	articleService := service.NewArticleService(articleRepository, producer)
 	interactiveDAO := dao.NewGORMInteractiveDAO(db)
 	interactiveCache := cache.NewInteractiveRedisCache(cmdable)
@@ -55,7 +56,8 @@ func InitWebServer() *App {
 	articleHandler := web.NewArticleHandler(logger, articleService, interactiveService)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	interactiveReadEventConsumer := article.NewInteractiveReadEventConsumer(interactiveRepository, client)
-	v2 := ioc.RegisterConsumers(interactiveReadEventConsumer)
+	interactiveReadEventConsumerWithMetrics := prometheus.NewInteractiveReadEventConsumerWithMetrics(interactiveReadEventConsumer)
+	v2 := ioc.RegisterConsumers(interactiveReadEventConsumerWithMetrics)
 	app := &App{
 		web:       engine,
 		consumers: v2,

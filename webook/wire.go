@@ -5,6 +5,7 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/jayleonc/geektime-go/webook/internal/events/article"
+	"github.com/jayleonc/geektime-go/webook/internal/events/article/prometheus"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -38,8 +39,9 @@ func InitWebServer() *App {
 		cache.NewArticleRedisCache,
 
 		article.NewInteractiveReadEventConsumer,
-		article.NewKafkaProducer,
-
+		prometheus.NewInteractiveReadEventConsumerWithMetrics,
+		//article.NewKafkaProducer,
+		ioc.NewKafkaProducerWithMetricsDecorator,
 		interactiveSvcSet,
 
 		// repository 部分

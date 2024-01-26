@@ -6,6 +6,8 @@ import (
 	"github.com/IBM/sarama"
 )
 
+const ReadEventTopic = "read_article"
+
 type Producer interface {
 	ProduceReadEvent(ctx context.Context, evt ReadEvent) error
 }
@@ -29,7 +31,7 @@ func (k *KafkaProducer) ProduceReadEvent(ctx context.Context, evt ReadEvent) err
 		return err
 	}
 	_, _, err = k.producer.SendMessage(&sarama.ProducerMessage{
-		Topic: "read_article",
+		Topic: ReadEventTopic,
 		Value: sarama.ByteEncoder(data),
 	})
 	return err

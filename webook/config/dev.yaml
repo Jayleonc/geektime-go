@@ -1,11 +1,10 @@
 redis:
-  addr: "175.178.58.198:16379"
+  addr: "localhost:6379"
   password: "jayleonc"
 
 db:
-#  dsn: "root:jayleonc@tcp(175.178.58.198:33306)/geektime"
   dsn: "root:jayleonc@tcp(localhost:3306)/geektime"
 
 kafka:
   addrs:
-    - "175.178.58.198:9094"
+    - "localhost:9094"

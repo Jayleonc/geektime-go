@@ -56,6 +56,7 @@ func Error(c *gin.Context, code int, msg string) {
 func Return(c *gin.Context, res Response, err error) {
 	if err != nil {
 		c.JSON(http.StatusOK, res.ReturnError(res.Code))
+		return
 	}
 	c.JSON(http.StatusOK, res.OK())
 }

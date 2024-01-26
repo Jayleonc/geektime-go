@@ -4,10 +4,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
+	"strconv"
 )
 
 var L logger.Logger = logger.NewNopLogger()
+
+var vector *prometheus.CounterVec
+
+func InitCounter(opt prometheus.CounterOpts) {
+	vector = prometheus.NewCounterVec(opt, []string{"code"})
+	prometheus.MustRegister(vector)
+}
 
 func WrapBodyAndClaims[Req any, Claims jwt.Claims](bizFn func(ctx *gin.Context, req Req, uc Claims) (Response, error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -28,6 +37,7 @@ func WrapBodyAndClaims[Req any, Claims jwt.Claims](bizFn func(ctx *gin.Context, 
 			return
 		}
 		res, err := bizFn(ctx, req, uc)
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
 		if err != nil {
 			L.Error("执行业务逻辑失败", logger.Error(err))
 		}
@@ -44,6 +54,7 @@ func WrapBody[Req any](bizFn func(ctx *gin.Context, req Req) (Response, error)) 
 		}
 		L.Debug("输入参数", logger.Field{Key: "req", Val: req})
 		res, err := bizFn(ctx, req)
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
 		if err != nil {
 			L.Error("执行业务逻辑失败", logger.Error(err))
 		}
@@ -64,6 +75,7 @@ func WarpClaims[Claims any](bizFn func(ctx *gin.Context, uc Claims) (Response, e
 			return
 		}
 		res, err := bizFn(ctx, uc)
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
 		if err != nil {
 			L.Error("执行业务逻辑失败", logger.Error(err))
 		}
@@ -74,6 +86,7 @@ func WarpClaims[Claims any](bizFn func(ctx *gin.Context, uc Claims) (Response, e
 func Wrap(fn func(ctx *gin.Context) (Response, error)) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		res, err := fn(ctx)
+		vector.WithLabelValues(strconv.Itoa(res.Code)).Inc()
 		if err != nil {
 			L.Error("处理业务逻辑出错",
 				logger.String("path", ctx.Request.URL.Path),

@@ -29,7 +29,7 @@ func (s *MongoDBTestSuite) SetupSuite() {
 		},
 	}
 	opts := options.Client().
-		ApplyURI("mongodb://root:Jayleonc@175.178.58.198:27017/").
+		ApplyURI("mongodb://root:Jayleonc@localhost:27017/").
 		SetMonitor(monitor)
 	client, err := mongo.Connect(ctx, opts)
 	assert.NoError(t, err)

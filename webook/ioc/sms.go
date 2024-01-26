@@ -3,7 +3,9 @@ package ioc
 import (
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/localsms"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms/prometheus"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/tencent"
+	prometheus2 "github.com/prometheus/client_golang/prometheus"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	tencentSMS "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
@@ -12,9 +14,17 @@ import (
 
 func InitSMSService() sms.Service {
 	//return ratelimit.NewRateLimitSMSService(localsms.NewService(), limiter.NewRedisSlidingWindowLimiter())
-	return localsms.NewService()
+	//return localsms.NewService()
 	// 如果有需要，就可以用这个
 	//return initTencentSMSService()
+	service := localsms.NewService()
+	opts := prometheus2.SummaryOpts{
+		Namespace: "geektime_jayleonc",
+		Subsystem: "webook",
+		Name:      "sms_req",
+		Help:      "统计 sms 请求响应时间",
+	}
+	return prometheus.NewSMSDecorator(service, opts)
 }
 
 func initTencentSMSService() sms.Service {

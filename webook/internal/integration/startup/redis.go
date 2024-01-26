@@ -6,7 +6,7 @@ import (
 
 func InitRedis() redis.Cmdable {
 	redisClint := redis.NewClient(&redis.Options{
-		Addr:     "175.178.58.198:16379",
+		Addr:     "localhost:6379",
 		Password: "jayleonc",
 	})
 	return redisClint

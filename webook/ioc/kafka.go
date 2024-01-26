@@ -4,6 +4,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/jayleonc/geektime-go/webook/internal/events"
 	"github.com/jayleonc/geektime-go/webook/internal/events/article"
+	"github.com/jayleonc/geektime-go/webook/internal/events/article/prometheus"
 	"github.com/spf13/viper"
 )
 
@@ -34,6 +35,11 @@ func NewSyncProducer(client sarama.Client) sarama.SyncProducer {
 }
 
 // RegisterConsumers 注册 Consumer
-func RegisterConsumers(c *article.InteractiveReadEventConsumer) []events.Consumer {
-	return []events.Consumer{c}
+func RegisterConsumers(m *prometheus.InteractiveReadEventConsumerWithMetrics) []events.Consumer {
+	return []events.Consumer{m}
+}
+
+func NewKafkaProducerWithMetricsDecorator(syncProducer sarama.SyncProducer) article.Producer {
+	baseProducer := article.NewKafkaProducer(syncProducer)
+	return prometheus.NewKafkaProducerWithMetrics(baseProducer)
 }

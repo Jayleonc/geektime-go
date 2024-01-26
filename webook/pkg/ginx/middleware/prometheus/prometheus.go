@@ -49,7 +49,6 @@ func (b *Builder) BuilderResponseTime() gin.HandlerFunc {
 
 func (b *Builder) BuilderActiveRequest() gin.HandlerFunc {
 	gauge := prometheus.NewGauge(prometheus.GaugeOpts{
-
 		Namespace: b.Namespace,
 		Subsystem: b.Subsystem,
 		Name:      b.Name + "_active_req",
