@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+option go_package = "github.com/jayleonc/geektime-go/grpc";
+
+
+message User {
+  int64 id = 1;
+  string name = 2;
+
+  // 编号不一定要连续，不可以相同
+  // 也不可以删除字段后重新复用编号
+  string avatar = 4;
+
+  map<string, string> attributes = 5;
+
+  repeated string nicknames = 6;
+
+  // 可选字段
+  optional int32 age = 7;
+
+  Address address = 8;
+
+  // 意思是两个里面只有一个会有值
+  oneof contacts {
+    string email = 9;
+    string phone = 10;
+  }
+
+  Gender gender = 11;
+}
+
+message Address {
+  string province = 1;
+  string city = 2;
+}
+
+enum Gender {
+  Unknown = 0; // 不要用 0，因为有可能有零值问题，也就是传没传的问题？
+  Male = 1;
+  Female = 2;
+}
+
+service UserService {
+  rpc GetByID(GetByIDRequest) returns(GetByIDResponse);
+}
+
+
+message GetByIDRequest {
+  int64 id = 1;
+}
+
+
+message GetByIDResponse {
+  User user = 1;
+}

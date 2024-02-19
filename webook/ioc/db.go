@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 	"gorm.io/plugin/prometheus"
 )
 
@@ -65,6 +66,7 @@ func InitDB(l logger.Logger) *gorm.DB {
 		panic(err)
 	}
 
+	db.Use(tracing.NewPlugin(tracing.WithoutMetrics(), tracing.WithDBName("geektime")))
 	dao.InitTables(db)
 	return db
 }

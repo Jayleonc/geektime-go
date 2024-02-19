@@ -16,6 +16,11 @@ type MongoDBArticleDAO struct {
 	liveCol *mongo.Collection
 }
 
+func (m MongoDBArticleDAO) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]PublishedArticle, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m MongoDBArticleDAO) GetByAuthor(ctx context.Context, uid int64, limit int, offset int) ([]Article, int64, error) {
 	//TODO implement me
 	panic("implement me")

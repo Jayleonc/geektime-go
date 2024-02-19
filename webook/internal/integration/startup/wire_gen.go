@@ -9,6 +9,7 @@ package startup
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	"github.com/jayleonc/geektime-go/webook/internal/events/article"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -16,6 +17,7 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/web"
 	"github.com/jayleonc/geektime-go/webook/internal/web/jwt"
 	"github.com/jayleonc/geektime-go/webook/ioc"
+	"github.com/jayleonc/geektime-go/webook/job"
 )
 
 // Injectors from wire.go:
@@ -38,24 +40,64 @@ func InitWebServer() *gin.Engine {
 	wechatService := InitWeChatService()
 	oAuth2WechatHandler := web.NewOAuth2WechatHandler(wechatService, userService, handler)
 	articleDAO := dao.NewArticleGORMDAO(db)
-	articleRepository := repository.NewCachedArticleRepository(articleDAO)
-	articleService := service.NewArticleService(articleRepository)
-	articleHandler := web.NewArticleHandler(logger, articleService)
+	articleCache := cache.NewArticleRedisCache(cmdable)
+	articleRepository := repository.NewCachedArticleRepository(articleDAO, articleCache, userRepository)
+	client := InitSaramaClient()
+	syncProducer := InitSyncProducer(client)
+	producer := article.NewKafkaProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, producer)
+	interactiveDAO := dao.NewGORMInteractiveDAO(db)
+	interactiveCache := cache.NewInteractiveRedisCache(cmdable)
+	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache)
+	interactiveService := service.NewInteractiveService(interactiveRepository)
+	articleHandler := web.NewArticleHandler(logger, articleService, interactiveService)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
 	return engine
 }
 
 func InitArticleHandler(dao2 dao.ArticleDAO) *web.ArticleHandler {
 	logger := InitLogger()
-	articleRepository := repository.NewCachedArticleRepository(dao2)
-	articleService := service.NewArticleService(articleRepository)
-	articleHandler := web.NewArticleHandler(logger, articleService)
+	cmdable := InitRedis()
+	articleCache := cache.NewArticleRedisCache(cmdable)
+	db := InitDB()
+	userDAO := dao.NewUserDAO(db)
+	userCache := cache.NewUserCache(cmdable)
+	userRepository := repository.NewCachedUserRepository(userDAO, userCache)
+	articleRepository := repository.NewCachedArticleRepository(dao2, articleCache, userRepository)
+	client := InitSaramaClient()
+	syncProducer := InitSyncProducer(client)
+	producer := article.NewKafkaProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, producer)
+	interactiveDAO := dao.NewGORMInteractiveDAO(db)
+	interactiveCache := cache.NewInteractiveRedisCache(cmdable)
+	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache)
+	interactiveService := service.NewInteractiveService(interactiveRepository)
+	articleHandler := web.NewArticleHandler(logger, articleService, interactiveService)
 	return articleHandler
+}
+
+func InitJobScheduler() *job.Scheduler {
+	db := InitDB()
+	jobDAO := dao.NewGORMJobDAO(db)
+	cronJobRepository := repository.NewPreemptJobRepository(jobDAO)
+	logger := InitLogger()
+	cronJobService := service.NewCronJobService(cronJobRepository, logger)
+	scheduler := job.NewScheduler(cronJobService, logger)
+	return scheduler
 }
 
 // wire.go:
 
-var ThirdPartySet = wire.NewSet(
+var thirdPartySet = wire.NewSet(
 	InitRedis, InitDB,
-	InitLogger, InitWeChatService,
-)
+	InitSaramaClient,
+	InitSyncProducer,
+	InitLogger)
+
+var jobProviderSet = wire.NewSet(service.NewCronJobService, repository.NewPreemptJobRepository, dao.NewGORMJobDAO)
+
+var userSvcProvider = wire.NewSet(dao.NewUserDAO, cache.NewUserCache, repository.NewCachedUserRepository, service.NewUserService)
+
+var articlSvcProvider = wire.NewSet(repository.NewCachedArticleRepository, cache.NewArticleRedisCache, dao.NewArticleGORMDAO, service.NewArticleService)
+
+var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO, cache.NewInteractiveRedisCache, repository.NewCachedInteractiveRepository, service.NewInteractiveService)

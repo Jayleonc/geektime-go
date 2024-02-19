@@ -2,6 +2,7 @@ package ioc
 
 import (
 	"context"
+	rlock "github.com/gotomicro/redis-lock"
 	"github.com/jayleonc/geektime-go/webook/pkg/redisx"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
@@ -35,4 +36,8 @@ func InitRedis() redis.Cmdable {
 	hook := redisx.NewPrometheusHook(opts)
 	redisClint.AddHook(hook)
 	return redisClint
+}
+
+func InitRLockClient(client redis.Cmdable) *rlock.Client {
+	return rlock.NewClient(client)
 }

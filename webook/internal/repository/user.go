@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -77,10 +78,10 @@ func (u *CachedUserRepository) FindById(ctx context.Context, uid int64) (domain.
 func (u *CachedUserRepository) FindByIdV1(ctx context.Context, uid int64) (domain.User, error) {
 	du, err := u.cache.Get(ctx, uid)
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		return du, nil
-	case cache.ErrKeyNotExist: // 缓存没有数据，但 Redis 运作正常
+	case errors.Is(err, cache.ErrKeyNotExist): // 缓存没有数据，但 Redis 运作正常
 		user, err := u.dao.FindById(ctx, uid)
 		if err != nil {
 			return domain.User{}, err
@@ -109,11 +110,10 @@ func (u *CachedUserRepository) UpdateNonZeroFields(ctx context.Context,
 		return err
 	}
 	// 延迟一秒
-	//time.AfterFunc(time.Second, func() {
-	//	_ = u.cache.Del(ctx, user.Id)
-	//})
-	//return u.cache.Del(ctx, user.Id)
-	return nil
+	time.AfterFunc(time.Second, func() {
+		_ = u.cache.Del(ctx, user.Id)
+	})
+	return u.cache.Del(ctx, user.Id)
 }
 
 func (u *CachedUserRepository) toDomain(user dao.User) domain.User {

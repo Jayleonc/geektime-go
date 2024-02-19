@@ -11,6 +11,7 @@ import (
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 func InitWebServer(mdls []gin.HandlerFunc, userHdl *web.UserHandler, wechatHdl *web.OAuth2WechatHandler, artHdl *web.ArticleHandler) *gin.Engine {
@@ -51,5 +52,6 @@ func InitGinMiddlewares(redisClient redis.Cmdable, jwtHdl ijwt.Handler, l logger
 		middleware.NewLoginJWTMiddlewareBuilder(jwtHdl).CheckLogin(),
 		pb.BuilderResponseTime(),
 		pb.BuilderActiveRequest(),
+		otelgin.Middleware("webook"),
 	}
 }

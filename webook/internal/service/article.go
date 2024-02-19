@@ -7,6 +7,7 @@ import (
 	events "github.com/jayleonc/geektime-go/webook/internal/events/article"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
+	"time"
 )
 
 type ArticleService interface {
@@ -15,12 +16,17 @@ type ArticleService interface {
 	GetByAuthor(ctx context.Context, uid int64, pageIndex, pageSize int, title string) ([]domain.Article, int64, error)
 	GetById(ctx context.Context, id int64) (domain.Article, error)
 	GetPubById(ctx context.Context, id, uid int64) (domain.Article, error)
+	ListPub(ctx context.Context, start time.Time, offset, limit int) ([]domain.Article, error)
 }
 
 type articleService struct {
 	repo     repository.ArticleRepository
 	producer events.Producer
 	l        logger.Logger
+}
+
+func (a *articleService) ListPub(ctx context.Context, start time.Time, offset, limit int) ([]domain.Article, error) {
+	return a.repo.ListPub(ctx, start, offset, limit)
 }
 
 func (a *articleService) GetPubById(ctx context.Context, id, uid int64) (domain.Article, error) {

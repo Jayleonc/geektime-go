@@ -114,13 +114,18 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context, req vo.UserLoginReq) (ginx.Resp
 }
 
 func (h *UserHandler) Edit(ctx *gin.Context, req vo.UserEditReq, uc ijwt.UserClaims) (ginx.Response, error) {
+	btime, err := time.Parse("2006-01-02", req.Birthday)
+	if err != nil {
+		return ginx.Response{}, err
+	}
 	var u = domain.User{
 		Id:       uc.Uid,
 		Nickname: req.Nickname,
 		AboutMe:  req.AboutMe,
+		Birthday: btime,
 	}
 
-	err := h.svc.Update(ctx, u)
+	err = h.svc.Update(ctx, u)
 	if err != nil {
 		return ginx.Response{
 			Code: http.StatusInternalServerError,

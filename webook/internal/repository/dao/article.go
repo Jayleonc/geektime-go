@@ -16,6 +16,7 @@ type ArticleDAO interface {
 	SyncStatus(ctx context.Context, uid int64, id int64, status uint8) error
 	GetById(ctx context.Context, id int64) (Article, error)
 	GetPubById(ctx context.Context, id int64) (PublishedArticle, error)
+	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]PublishedArticle, error)
 }
 
 type Article struct {
@@ -32,6 +33,19 @@ type PublishedArticle Article
 
 type ArticleGORMDAO struct {
 	db *gorm.DB
+}
+
+func (a *ArticleGORMDAO) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]PublishedArticle, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*100)
+	defer cancel()
+	var res []PublishedArticle
+	const ArticleStatusPublished = 2
+	err := a.db.WithContext(ctx).
+		Where("utime < ? AND status = ?",
+			start.UnixMilli(), ArticleStatusPublished).
+		Offset(offset).Limit(limit).
+		Find(&res).Error
+	return res, err
 }
 
 func (a *ArticleGORMDAO) GetPubById(ctx context.Context, id int64) (PublishedArticle, error) {
