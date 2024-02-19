@@ -5,7 +5,7 @@ metadata:
 
 spec: # Deployment 规格说明
   # Pod 的数量
-  replicas: 3
+  replicas: 2
   selector: # 筛选器，根据（什么）来筛选
     matchLabels: # 这里根据的是 Labels （标签） 来筛选｜常用的还有根据表达式筛选 matchExpressions
       app: webook
