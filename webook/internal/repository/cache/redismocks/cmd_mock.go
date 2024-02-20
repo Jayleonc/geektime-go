@@ -552,6 +552,143 @@ func (mr *MockCmdableMockRecorder) BgSave(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BgSave", reflect.TypeOf((*MockCmdable)(nil).BgSave), arg0)
 }
 
+// BitCount mocks base method.
+func (m *MockCmdable) BitCount(arg0 context.Context, arg1 string, arg2 *redis.BitCount) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BitCount", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitCount indicates an expected call of BitCount.
+func (mr *MockCmdableMockRecorder) BitCount(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitCount", reflect.TypeOf((*MockCmdable)(nil).BitCount), arg0, arg1, arg2)
+}
+
+// BitField mocks base method.
+func (m *MockCmdable) BitField(arg0 context.Context, arg1 string, arg2 ...any) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BitField", varargs...)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// BitField indicates an expected call of BitField.
+func (mr *MockCmdableMockRecorder) BitField(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitField", reflect.TypeOf((*MockCmdable)(nil).BitField), varargs...)
+}
+
+// BitOpAnd mocks base method.
+func (m *MockCmdable) BitOpAnd(arg0 context.Context, arg1 string, arg2 ...string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BitOpAnd", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitOpAnd indicates an expected call of BitOpAnd.
+func (mr *MockCmdableMockRecorder) BitOpAnd(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitOpAnd", reflect.TypeOf((*MockCmdable)(nil).BitOpAnd), varargs...)
+}
+
+// BitOpNot mocks base method.
+func (m *MockCmdable) BitOpNot(arg0 context.Context, arg1, arg2 string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BitOpNot", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitOpNot indicates an expected call of BitOpNot.
+func (mr *MockCmdableMockRecorder) BitOpNot(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitOpNot", reflect.TypeOf((*MockCmdable)(nil).BitOpNot), arg0, arg1, arg2)
+}
+
+// BitOpOr mocks base method.
+func (m *MockCmdable) BitOpOr(arg0 context.Context, arg1 string, arg2 ...string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BitOpOr", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitOpOr indicates an expected call of BitOpOr.
+func (mr *MockCmdableMockRecorder) BitOpOr(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitOpOr", reflect.TypeOf((*MockCmdable)(nil).BitOpOr), varargs...)
+}
+
+// BitOpXor mocks base method.
+func (m *MockCmdable) BitOpXor(arg0 context.Context, arg1 string, arg2 ...string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BitOpXor", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitOpXor indicates an expected call of BitOpXor.
+func (mr *MockCmdableMockRecorder) BitOpXor(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitOpXor", reflect.TypeOf((*MockCmdable)(nil).BitOpXor), varargs...)
+}
+
+// BitPos mocks base method.
+func (m *MockCmdable) BitPos(arg0 context.Context, arg1 string, arg2 int64, arg3 ...int64) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "BitPos", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitPos indicates an expected call of BitPos.
+func (mr *MockCmdableMockRecorder) BitPos(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitPos", reflect.TypeOf((*MockCmdable)(nil).BitPos), varargs...)
+}
+
+// BitPosSpan mocks base method.
+func (m *MockCmdable) BitPosSpan(arg0 context.Context, arg1 string, arg2 int8, arg3, arg4 int64, arg5 string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BitPosSpan", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// BitPosSpan indicates an expected call of BitPosSpan.
+func (mr *MockCmdableMockRecorder) BitPosSpan(arg0, arg1, arg2, arg3, arg4, arg5 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BitPosSpan", reflect.TypeOf((*MockCmdable)(nil).BitPosSpan), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
 // CFAdd mocks base method.
 func (m *MockCmdable) CFAdd(arg0 context.Context, arg1 string, arg2 any) *redis.BoolCmd {
 	m.ctrl.T.Helper()
@@ -2235,6 +2372,20 @@ func (mr *MockCmdableMockRecorder) Get(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCmdable)(nil).Get), arg0, arg1)
 }
 
+// GetBit mocks base method.
+func (m *MockCmdable) GetBit(arg0 context.Context, arg1 string, arg2 int64) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBit", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// GetBit indicates an expected call of GetBit.
+func (mr *MockCmdableMockRecorder) GetBit(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBit", reflect.TypeOf((*MockCmdable)(nil).GetBit), arg0, arg1, arg2)
+}
+
 // GetDel mocks base method.
 func (m *MockCmdable) GetDel(arg0 context.Context, arg1 string) *redis.StringCmd {
 	m.ctrl.T.Helper()
@@ -2594,6 +2745,424 @@ func (mr *MockCmdableMockRecorder) Info(arg0 any, arg1 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0}, arg1...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Info", reflect.TypeOf((*MockCmdable)(nil).Info), varargs...)
+}
+
+// JSONArrAppend mocks base method.
+func (m *MockCmdable) JSONArrAppend(arg0 context.Context, arg1, arg2 string, arg3 ...any) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONArrAppend", varargs...)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrAppend indicates an expected call of JSONArrAppend.
+func (mr *MockCmdableMockRecorder) JSONArrAppend(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrAppend", reflect.TypeOf((*MockCmdable)(nil).JSONArrAppend), varargs...)
+}
+
+// JSONArrIndex mocks base method.
+func (m *MockCmdable) JSONArrIndex(arg0 context.Context, arg1, arg2 string, arg3 ...any) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONArrIndex", varargs...)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrIndex indicates an expected call of JSONArrIndex.
+func (mr *MockCmdableMockRecorder) JSONArrIndex(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrIndex", reflect.TypeOf((*MockCmdable)(nil).JSONArrIndex), varargs...)
+}
+
+// JSONArrIndexWithArgs mocks base method.
+func (m *MockCmdable) JSONArrIndexWithArgs(arg0 context.Context, arg1, arg2 string, arg3 *redis.JSONArrIndexArgs, arg4 ...any) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1, arg2, arg3}
+	for _, a := range arg4 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONArrIndexWithArgs", varargs...)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrIndexWithArgs indicates an expected call of JSONArrIndexWithArgs.
+func (mr *MockCmdableMockRecorder) JSONArrIndexWithArgs(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrIndexWithArgs", reflect.TypeOf((*MockCmdable)(nil).JSONArrIndexWithArgs), varargs...)
+}
+
+// JSONArrInsert mocks base method.
+func (m *MockCmdable) JSONArrInsert(arg0 context.Context, arg1, arg2 string, arg3 int64, arg4 ...any) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1, arg2, arg3}
+	for _, a := range arg4 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONArrInsert", varargs...)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrInsert indicates an expected call of JSONArrInsert.
+func (mr *MockCmdableMockRecorder) JSONArrInsert(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrInsert", reflect.TypeOf((*MockCmdable)(nil).JSONArrInsert), varargs...)
+}
+
+// JSONArrLen mocks base method.
+func (m *MockCmdable) JSONArrLen(arg0 context.Context, arg1, arg2 string) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONArrLen", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrLen indicates an expected call of JSONArrLen.
+func (mr *MockCmdableMockRecorder) JSONArrLen(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrLen", reflect.TypeOf((*MockCmdable)(nil).JSONArrLen), arg0, arg1, arg2)
+}
+
+// JSONArrPop mocks base method.
+func (m *MockCmdable) JSONArrPop(arg0 context.Context, arg1, arg2 string, arg3 int) *redis.StringSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONArrPop", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.StringSliceCmd)
+	return ret0
+}
+
+// JSONArrPop indicates an expected call of JSONArrPop.
+func (mr *MockCmdableMockRecorder) JSONArrPop(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrPop", reflect.TypeOf((*MockCmdable)(nil).JSONArrPop), arg0, arg1, arg2, arg3)
+}
+
+// JSONArrTrim mocks base method.
+func (m *MockCmdable) JSONArrTrim(arg0 context.Context, arg1, arg2 string) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONArrTrim", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrTrim indicates an expected call of JSONArrTrim.
+func (mr *MockCmdableMockRecorder) JSONArrTrim(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrTrim", reflect.TypeOf((*MockCmdable)(nil).JSONArrTrim), arg0, arg1, arg2)
+}
+
+// JSONArrTrimWithArgs mocks base method.
+func (m *MockCmdable) JSONArrTrimWithArgs(arg0 context.Context, arg1, arg2 string, arg3 *redis.JSONArrTrimArgs) *redis.IntSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONArrTrimWithArgs", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.IntSliceCmd)
+	return ret0
+}
+
+// JSONArrTrimWithArgs indicates an expected call of JSONArrTrimWithArgs.
+func (mr *MockCmdableMockRecorder) JSONArrTrimWithArgs(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONArrTrimWithArgs", reflect.TypeOf((*MockCmdable)(nil).JSONArrTrimWithArgs), arg0, arg1, arg2, arg3)
+}
+
+// JSONClear mocks base method.
+func (m *MockCmdable) JSONClear(arg0 context.Context, arg1, arg2 string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONClear", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// JSONClear indicates an expected call of JSONClear.
+func (mr *MockCmdableMockRecorder) JSONClear(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONClear", reflect.TypeOf((*MockCmdable)(nil).JSONClear), arg0, arg1, arg2)
+}
+
+// JSONDebugMemory mocks base method.
+func (m *MockCmdable) JSONDebugMemory(arg0 context.Context, arg1, arg2 string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONDebugMemory", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// JSONDebugMemory indicates an expected call of JSONDebugMemory.
+func (mr *MockCmdableMockRecorder) JSONDebugMemory(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONDebugMemory", reflect.TypeOf((*MockCmdable)(nil).JSONDebugMemory), arg0, arg1, arg2)
+}
+
+// JSONDel mocks base method.
+func (m *MockCmdable) JSONDel(arg0 context.Context, arg1, arg2 string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONDel", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// JSONDel indicates an expected call of JSONDel.
+func (mr *MockCmdableMockRecorder) JSONDel(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONDel", reflect.TypeOf((*MockCmdable)(nil).JSONDel), arg0, arg1, arg2)
+}
+
+// JSONForget mocks base method.
+func (m *MockCmdable) JSONForget(arg0 context.Context, arg1, arg2 string) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONForget", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// JSONForget indicates an expected call of JSONForget.
+func (mr *MockCmdableMockRecorder) JSONForget(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONForget", reflect.TypeOf((*MockCmdable)(nil).JSONForget), arg0, arg1, arg2)
+}
+
+// JSONGet mocks base method.
+func (m *MockCmdable) JSONGet(arg0 context.Context, arg1 string, arg2 ...string) *redis.JSONCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONGet", varargs...)
+	ret0, _ := ret[0].(*redis.JSONCmd)
+	return ret0
+}
+
+// JSONGet indicates an expected call of JSONGet.
+func (mr *MockCmdableMockRecorder) JSONGet(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONGet", reflect.TypeOf((*MockCmdable)(nil).JSONGet), varargs...)
+}
+
+// JSONGetWithArgs mocks base method.
+func (m *MockCmdable) JSONGetWithArgs(arg0 context.Context, arg1 string, arg2 *redis.JSONGetArgs, arg3 ...string) *redis.JSONCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONGetWithArgs", varargs...)
+	ret0, _ := ret[0].(*redis.JSONCmd)
+	return ret0
+}
+
+// JSONGetWithArgs indicates an expected call of JSONGetWithArgs.
+func (mr *MockCmdableMockRecorder) JSONGetWithArgs(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONGetWithArgs", reflect.TypeOf((*MockCmdable)(nil).JSONGetWithArgs), varargs...)
+}
+
+// JSONMGet mocks base method.
+func (m *MockCmdable) JSONMGet(arg0 context.Context, arg1 string, arg2 ...string) *redis.JSONSliceCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONMGet", varargs...)
+	ret0, _ := ret[0].(*redis.JSONSliceCmd)
+	return ret0
+}
+
+// JSONMGet indicates an expected call of JSONMGet.
+func (mr *MockCmdableMockRecorder) JSONMGet(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONMGet", reflect.TypeOf((*MockCmdable)(nil).JSONMGet), varargs...)
+}
+
+// JSONMSet mocks base method.
+func (m *MockCmdable) JSONMSet(arg0 context.Context, arg1 ...any) *redis.StatusCmd {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "JSONMSet", varargs...)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
+}
+
+// JSONMSet indicates an expected call of JSONMSet.
+func (mr *MockCmdableMockRecorder) JSONMSet(arg0 any, arg1 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONMSet", reflect.TypeOf((*MockCmdable)(nil).JSONMSet), varargs...)
+}
+
+// JSONMSetArgs mocks base method.
+func (m *MockCmdable) JSONMSetArgs(arg0 context.Context, arg1 []redis.JSONSetArgs) *redis.StatusCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONMSetArgs", arg0, arg1)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
+}
+
+// JSONMSetArgs indicates an expected call of JSONMSetArgs.
+func (mr *MockCmdableMockRecorder) JSONMSetArgs(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONMSetArgs", reflect.TypeOf((*MockCmdable)(nil).JSONMSetArgs), arg0, arg1)
+}
+
+// JSONMerge mocks base method.
+func (m *MockCmdable) JSONMerge(arg0 context.Context, arg1, arg2, arg3 string) *redis.StatusCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONMerge", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
+}
+
+// JSONMerge indicates an expected call of JSONMerge.
+func (mr *MockCmdableMockRecorder) JSONMerge(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONMerge", reflect.TypeOf((*MockCmdable)(nil).JSONMerge), arg0, arg1, arg2, arg3)
+}
+
+// JSONNumIncrBy mocks base method.
+func (m *MockCmdable) JSONNumIncrBy(arg0 context.Context, arg1, arg2 string, arg3 float64) *redis.JSONCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONNumIncrBy", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.JSONCmd)
+	return ret0
+}
+
+// JSONNumIncrBy indicates an expected call of JSONNumIncrBy.
+func (mr *MockCmdableMockRecorder) JSONNumIncrBy(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONNumIncrBy", reflect.TypeOf((*MockCmdable)(nil).JSONNumIncrBy), arg0, arg1, arg2, arg3)
+}
+
+// JSONObjKeys mocks base method.
+func (m *MockCmdable) JSONObjKeys(arg0 context.Context, arg1, arg2 string) *redis.SliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONObjKeys", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.SliceCmd)
+	return ret0
+}
+
+// JSONObjKeys indicates an expected call of JSONObjKeys.
+func (mr *MockCmdableMockRecorder) JSONObjKeys(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONObjKeys", reflect.TypeOf((*MockCmdable)(nil).JSONObjKeys), arg0, arg1, arg2)
+}
+
+// JSONObjLen mocks base method.
+func (m *MockCmdable) JSONObjLen(arg0 context.Context, arg1, arg2 string) *redis.IntPointerSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONObjLen", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntPointerSliceCmd)
+	return ret0
+}
+
+// JSONObjLen indicates an expected call of JSONObjLen.
+func (mr *MockCmdableMockRecorder) JSONObjLen(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONObjLen", reflect.TypeOf((*MockCmdable)(nil).JSONObjLen), arg0, arg1, arg2)
+}
+
+// JSONSet mocks base method.
+func (m *MockCmdable) JSONSet(arg0 context.Context, arg1, arg2 string, arg3 any) *redis.StatusCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONSet", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
+}
+
+// JSONSet indicates an expected call of JSONSet.
+func (mr *MockCmdableMockRecorder) JSONSet(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONSet", reflect.TypeOf((*MockCmdable)(nil).JSONSet), arg0, arg1, arg2, arg3)
+}
+
+// JSONSetMode mocks base method.
+func (m *MockCmdable) JSONSetMode(arg0 context.Context, arg1, arg2 string, arg3 any, arg4 string) *redis.StatusCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONSetMode", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
+}
+
+// JSONSetMode indicates an expected call of JSONSetMode.
+func (mr *MockCmdableMockRecorder) JSONSetMode(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONSetMode", reflect.TypeOf((*MockCmdable)(nil).JSONSetMode), arg0, arg1, arg2, arg3, arg4)
+}
+
+// JSONStrAppend mocks base method.
+func (m *MockCmdable) JSONStrAppend(arg0 context.Context, arg1, arg2, arg3 string) *redis.IntPointerSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONStrAppend", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.IntPointerSliceCmd)
+	return ret0
+}
+
+// JSONStrAppend indicates an expected call of JSONStrAppend.
+func (mr *MockCmdableMockRecorder) JSONStrAppend(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONStrAppend", reflect.TypeOf((*MockCmdable)(nil).JSONStrAppend), arg0, arg1, arg2, arg3)
+}
+
+// JSONStrLen mocks base method.
+func (m *MockCmdable) JSONStrLen(arg0 context.Context, arg1, arg2 string) *redis.IntPointerSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONStrLen", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntPointerSliceCmd)
+	return ret0
+}
+
+// JSONStrLen indicates an expected call of JSONStrLen.
+func (mr *MockCmdableMockRecorder) JSONStrLen(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONStrLen", reflect.TypeOf((*MockCmdable)(nil).JSONStrLen), arg0, arg1, arg2)
+}
+
+// JSONToggle mocks base method.
+func (m *MockCmdable) JSONToggle(arg0 context.Context, arg1, arg2 string) *redis.IntPointerSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONToggle", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.IntPointerSliceCmd)
+	return ret0
+}
+
+// JSONToggle indicates an expected call of JSONToggle.
+func (mr *MockCmdableMockRecorder) JSONToggle(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONToggle", reflect.TypeOf((*MockCmdable)(nil).JSONToggle), arg0, arg1, arg2)
+}
+
+// JSONType mocks base method.
+func (m *MockCmdable) JSONType(arg0 context.Context, arg1, arg2 string) *redis.JSONSliceCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "JSONType", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*redis.JSONSliceCmd)
+	return ret0
+}
+
+// JSONType indicates an expected call of JSONType.
+func (mr *MockCmdableMockRecorder) JSONType(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONType", reflect.TypeOf((*MockCmdable)(nil).JSONType), arg0, arg1, arg2)
 }
 
 // Keys mocks base method.
@@ -3980,6 +4549,20 @@ func (m *MockCmdable) SetArgs(arg0 context.Context, arg1 string, arg2 any, arg3 
 func (mr *MockCmdableMockRecorder) SetArgs(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetArgs", reflect.TypeOf((*MockCmdable)(nil).SetArgs), arg0, arg1, arg2, arg3)
+}
+
+// SetBit mocks base method.
+func (m *MockCmdable) SetBit(arg0 context.Context, arg1 string, arg2 int64, arg3 int) *redis.IntCmd {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetBit", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// SetBit indicates an expected call of SetBit.
+func (mr *MockCmdableMockRecorder) SetBit(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBit", reflect.TypeOf((*MockCmdable)(nil).SetBit), arg0, arg1, arg2, arg3)
 }
 
 // SetEx mocks base method.

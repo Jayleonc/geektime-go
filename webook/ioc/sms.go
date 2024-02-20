@@ -1,10 +1,13 @@
 package ioc
 
 import (
+	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms/async"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/localsms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/prometheus"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/tencent"
+	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
@@ -13,10 +16,7 @@ import (
 )
 
 func InitSMSService() sms.Service {
-	//return ratelimit.NewRateLimitSMSService(localsms.NewService(), limiter.NewRedisSlidingWindowLimiter())
-	//return localsms.NewService()
-	// 如果有需要，就可以用这个
-	//return initTencentSMSService()
+	//ratelimit.NewRateLimitSMSService(localsms.NewService(), limiter.NewRedisSlidingWindowLimiter())
 	service := localsms.NewService()
 	opts := prometheus2.SummaryOpts{
 		Namespace: "geektime_jayleonc",
@@ -24,7 +24,18 @@ func InitSMSService() sms.Service {
 		Name:      "sms_req",
 		Help:      "统计 sms 请求响应时间",
 	}
-	return prometheus.NewSMSDecorator(service, opts)
+	decorator := prometheus.NewSMSDecorator(service, opts)
+	return decorator
+}
+
+func InitAsyncSMSService(repo repository.AsyncTaskRepository, l logger.Logger) *async.SmsService {
+	// 首先，初始化装饰过的SMS服务
+	decoratedService := InitSMSService()
+
+	// 然后，使用装饰过的服务初始化asyncSmsService
+	asyncSmsService := async.NewSmsService(decoratedService, repo, l)
+
+	return asyncSmsService
 }
 
 func initTencentSMSService() sms.Service {

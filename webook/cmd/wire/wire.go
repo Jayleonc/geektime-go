@@ -10,6 +10,8 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms/async"
 	"github.com/jayleonc/geektime-go/webook/internal/web"
 	ijwt "github.com/jayleonc/geektime-go/webook/internal/web/jwt"
 	"github.com/jayleonc/geektime-go/webook/ioc"
@@ -31,8 +33,14 @@ func InitWebServer() *App {
 		ioc.InitKafka, ioc.InitRLockClient,
 		ioc.RegisterConsumers,
 		ioc.NewSyncProducer,
+
+		//async.NewSmsService,
+		// 注册 Task 的方法
+		ioc.InitTask,
+		repository.NewAsyncTaskRepository,
 		// DAO 部分
 		dao.NewUserDAO,
+		dao.NewTaskDAO,
 
 		// cache 部分
 		cache.NewCodeCache,
@@ -54,7 +62,10 @@ func InitWebServer() *App {
 		repository.NewCodeRepository,
 
 		// Service 部分
-		ioc.InitSMSService,
+		smsServiceSet,
+		service.NewDemo,
+		//ioc.InitSMSService,
+		//ioc.InitAsyncSMSService,
 		ioc.InitWeChatService,
 		service.NewUserService,
 		service.NewCodeService,
@@ -75,3 +86,9 @@ func InitWebServer() *App {
 	)
 	return new(App)
 }
+
+var smsServiceSet = wire.NewSet(
+	ioc.InitAsyncSMSService,
+	// 使用 wire.Bind 来绑定接口和实现
+	wire.Bind(new(sms.Service), new(*async.SmsService)),
+)

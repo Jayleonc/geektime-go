@@ -11,6 +11,7 @@ package mock_repository
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	domain "github.com/jayleonc/geektime-go/webook/internal/domain"
 	gomock "go.uber.org/mock/gomock"
@@ -98,6 +99,21 @@ func (m *MockArticleRepository) GetPubById(ctx context.Context, id int64) (domai
 func (mr *MockArticleRepositoryMockRecorder) GetPubById(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPubById", reflect.TypeOf((*MockArticleRepository)(nil).GetPubById), ctx, id)
+}
+
+// ListPub mocks base method.
+func (m *MockArticleRepository) ListPub(ctx context.Context, start time.Time, offset, limit int) ([]domain.Article, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPub", ctx, start, offset, limit)
+	ret0, _ := ret[0].([]domain.Article)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPub indicates an expected call of ListPub.
+func (mr *MockArticleRepositoryMockRecorder) ListPub(ctx, start, offset, limit any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPub", reflect.TypeOf((*MockArticleRepository)(nil).ListPub), ctx, start, offset, limit)
 }
 
 // Sync mocks base method.

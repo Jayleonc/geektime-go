@@ -69,7 +69,7 @@ func runApp() {
 		ctx.String(http.StatusOK, "Hello 启动成功啦")
 	})
 
-	server.Run(":8081")
+	server.Run(":8080")
 }
 
 func initPrometheus() {

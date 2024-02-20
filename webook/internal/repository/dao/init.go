@@ -20,6 +20,7 @@ func InitTables(db *gorm.DB) error {
 		&Interactive{},
 		&Collection{},
 		&Job{},
+		&Task{},
 	)
 }
 
