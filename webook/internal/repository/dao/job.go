@@ -59,9 +59,10 @@ func (dao *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 	for {
 		var j Job
 		now := time.Now().UnixMilli()
-		// 作业：这里是缺少找到续约失败的 JOB 出来执行， 通过 status = 1 和 Utime 来判断有没有续约
-		err := db.Where("status = ? AND next_time < ?",
-			jobStatusWaiting, now).
+		leaseTimeout := int64(30000) // 假设续约超时时间为30秒，具体值根据实际情况调整
+		err := db.Where("(status = ? AND next_time < ?) OR (status = ? AND utime < ? - ?)",
+			jobStatusWaiting, now, jobStatusRunning, now, leaseTimeout).
+			Order("next_time ASC"). // 增加排序，确保最早需要被执行的任务被优先处理
 			First(&j).Error
 		if err != nil {
 			return j, err
@@ -80,7 +81,7 @@ func (dao *GORMJobDAO) Preempt(ctx context.Context) (Job, error) {
 			// 没抢到
 			continue
 		}
-		return j, err
+		return j, nil
 	}
 }
 
