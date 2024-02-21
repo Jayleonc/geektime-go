@@ -11,7 +11,7 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 }
 ```
 
-![image-20240221164624264](/Users/jayleonc/Developer/Environment/go/src/github.com/Jayleonc/geektime-go/webook/internal/web/readme/image-20240221164624264.png)
+![image-20240221164624264](image-20240221164624264.png)
 
 **主要实现的功能包括：**
 
@@ -167,7 +167,7 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
     1. 当点赞数的增加与减少：实现了对文章点赞数的增加和减少的处理，这包括在数据库和Redis缓存中同步更新点赞数。
     2. 当更新文章内容时，检查该文章是否存在于缓存，存在就更新缓存在Top N列表中的文章，以保持数据一致性。
 
-![image-20240221161518199](/Users/jayleonc/Developer/Environment/go/src/github.com/Jayleonc/geektime-go/webook/internal/web/readme/image-20240221161518199.png)
+![image-20240221161518199](image-20240221161518199.png)
 
 ### 性能测试
 
@@ -184,7 +184,7 @@ wrk -t2 -c10 -d30s -s topn.lua http://localhost:8080
 
 **性能测试结果**：
 
-- ![image-20240221161802874](/Users/jayleonc/Developer/Environment/go/src/github.com/Jayleonc/geektime-go/webook/internal/web/readme/image-20240221161802874.png)
+- ![image-20240221161802874](image-20240221161802874.png)
 
 **其他说明**：
 
