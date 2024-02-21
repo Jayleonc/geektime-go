@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -17,10 +18,32 @@ type InteractiveDAO interface {
 	GetCollectInfo(ctx context.Context, biz string, id int64, uid int64) (UserCollectionBiz, error)
 	Get(ctx context.Context, biz string, id int64) (Interactive, error)
 	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
+	// GetTopNLikedArticles 得到点赞数前 N 的 文章Id
+	GetTopNLikedInteractive(ctx context.Context, biz string, n int) ([]Interactive, error)
 }
 
 type GORMInteractiveDAO struct {
 	db *gorm.DB
+}
+
+const MaxAllowedN = 100 // 假设100是业务上可接受的最大值
+
+func (dao *GORMInteractiveDAO) GetTopNLikedInteractive(ctx context.Context, biz string, n int) ([]Interactive, error) {
+	if n > MaxAllowedN {
+		// 如果n超过最大允许值，可以选择返回错误
+		return nil, fmt.Errorf("请求的数量超过了最大允许值：%d", MaxAllowedN)
+		// 或者将n限制为最大值，静默处理，不返回错误
+		// n = MaxAllowedN
+	}
+
+	var interactives []Interactive
+	if err := dao.db.WithContext(ctx).
+		Where("biz = ?", biz).
+		Order("like_cnt desc").
+		Limit(n).Find(&interactives).Error; err != nil {
+		return nil, err
+	}
+	return interactives, nil
 }
 
 func (dao *GORMInteractiveDAO) GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error) {
@@ -176,8 +199,8 @@ type UserLikeBiz struct {
 
 type Interactive struct {
 	Id         int64  `gorm:"primaryKey,autoIncrement"`
-	BizId      int64  `gorm:"uniqueIndex:biz_type_id"`
-	Biz        string `gorm:"type:varchar(128);uniqueIndex:biz_type_id"`
+	BizId      int64  `gorm:"uniqueIndex:biz_type_id"`                   // 也就是 文章的 ID
+	Biz        string `gorm:"type:varchar(128);uniqueIndex:biz_type_id"` // 业务，也就是文章 article
 	ReadCnt    int64
 	LikeCnt    int64
 	CollectCnt int64

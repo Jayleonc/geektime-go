@@ -11,10 +11,11 @@ import (
 )
 
 type ArticleService interface {
-	Save(ctx context.Context, article domain.Article) (int64, error)
+	Save(ctx context.Context, biz string, article domain.Article) (int64, error)
 	Publish(ctx context.Context, article domain.Article) (int64, error)
 	GetByAuthor(ctx context.Context, uid int64, pageIndex, pageSize int, title string) ([]domain.Article, int64, error)
 	GetById(ctx context.Context, id int64) (domain.Article, error)
+	GetByIds(ctx context.Context, ids []int64) ([]domain.Article, error)
 	GetPubById(ctx context.Context, id, uid int64) (domain.Article, error)
 	ListPub(ctx context.Context, start time.Time, offset, limit int) ([]domain.Article, error)
 }
@@ -23,6 +24,10 @@ type articleService struct {
 	repo     repository.ArticleRepository
 	producer events.Producer
 	l        logger.Logger
+}
+
+func (a *articleService) GetByIds(ctx context.Context, ids []int64) ([]domain.Article, error) {
+	return a.repo.GetByIds(ctx, ids)
 }
 
 func (a *articleService) ListPub(ctx context.Context, start time.Time, offset, limit int) ([]domain.Article, error) {
@@ -56,11 +61,6 @@ func (a *articleService) GetByAuthor(ctx context.Context, uid int64, pageIndex i
 	return a.repo.GetByAuthor(ctx, uid, pageIndex, pageSize)
 }
 
-func (a *articleService) Sync(ctx context.Context, art domain.Article) (int64, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewArticleService(repo repository.ArticleRepository, producer events.Producer) ArticleService {
 	return &articleService{
 		repo:     repo,
@@ -68,10 +68,10 @@ func NewArticleService(repo repository.ArticleRepository, producer events.Produc
 	}
 }
 
-func (a *articleService) Save(ctx context.Context, article domain.Article) (int64, error) {
+func (a *articleService) Save(ctx context.Context, biz string, article domain.Article) (int64, error) {
 	article.Status = domain.ArticleStatusUnpublished
 	if article.Id > 0 {
-		err := a.repo.Update(ctx, article)
+		err := a.repo.Update(ctx, biz, article)
 		return article.Id, err
 	}
 	return a.repo.Create(ctx, article)

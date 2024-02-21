@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
@@ -12,13 +13,14 @@ import (
 
 type ArticleRepository interface {
 	Create(ctx context.Context, article domain.Article) (int64, error)
-	Update(ctx context.Context, article domain.Article) error
+	Update(ctx context.Context, biz string, article domain.Article) error
 	Sync(ctx context.Context, art domain.Article) (int64, error)
 	GetByAuthor(ctx context.Context, uid int64, limit int, offset int) ([]domain.Article, int64, error)
 	SyncStatus(ctx context.Context, uid int64, id int64, status domain.ArticleStatus) error
 	GetById(ctx context.Context, id int64) (domain.Article, error)
 	GetPubById(ctx context.Context, id int64) (domain.Article, error)
 	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error)
+	GetByIds(ctx context.Context, ids []int64) ([]domain.Article, error)
 }
 
 type CachedArticleRepository struct {
@@ -28,6 +30,42 @@ type CachedArticleRepository struct {
 	userRepo UserRepository
 
 	db *gorm.DB
+}
+
+func (c *CachedArticleRepository) GetByIds(ctx context.Context, ids []int64) ([]domain.Article, error) {
+	// 尝试从缓存中批量获取文章数据
+	articles, missingIds, err := c.cache.GetArticlesByIds(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	var missingArticles []domain.Article
+
+	// 如果有缓存未命中的ID，从数据库获取这些文章数据
+	if len(missingIds) > 0 {
+		missingArticlesDao, err := c.dao.GetByIds(ctx, missingIds)
+		if err != nil {
+			return nil, err
+		}
+
+		// 转换 dao.PublishedArticle 到 domain.Article
+		for _, daoArt := range missingArticlesDao {
+			domainArt := c.toDomain(dao.Article(daoArt))
+			missingArticles = append(missingArticles, domainArt)
+		}
+
+		// 将从数据库中获取的文章添加到最终结果列表中
+		articles = append(articles, missingArticles...)
+
+		// 异步更新缓存
+		go func() {
+			if er := c.cache.SetArticles(ctx, missingArticles); er != nil {
+				fmt.Println(er)
+			}
+		}()
+	}
+
+	return articles, nil
 }
 
 func (c *CachedArticleRepository) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error) {
@@ -229,8 +267,29 @@ func (c *CachedArticleRepository) Create(ctx context.Context, article domain.Art
 	return 0, err
 }
 
-func (c *CachedArticleRepository) Update(ctx context.Context, article domain.Article) error {
-	return c.dao.UpdateById(ctx, c.toEntity(article))
+func (c *CachedArticleRepository) Update(ctx context.Context, biz string, article domain.Article) error {
+	// 首先更新数据库中的文章
+	err := c.dao.UpdateById(ctx, c.toEntity(article))
+	if err != nil {
+		return err
+	}
+	// update 需要判断是否存在与 topN 存在就要把article内容更新到 topN 相关的 hash 中
+	// 检查文章是否在Top N列表中
+	isInTopN, err := c.cache.IsArticleInTopN(ctx, biz, article.Id)
+	if err != nil {
+		// 处理错误，可能记录日志或返回
+		return err
+	}
+
+	// 如果文章在Top N列表中，更新缓存中的文章内容
+	if isInTopN {
+		err = c.cache.UpdateArticleInCache(ctx, biz, article)
+		if err != nil {
+			// 处理错误，可能记录日志或返回
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *CachedArticleRepository) toEntity(art domain.Article) dao.Article {

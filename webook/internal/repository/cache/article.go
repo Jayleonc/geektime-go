@@ -3,9 +3,11 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/redis/go-redis/v9"
+	"strconv"
 	"time"
 )
 
@@ -17,10 +19,79 @@ type ArticleCache interface {
 	Get(ctx context.Context, id int64) (domain.Article, error)
 	Set(ctx context.Context, article domain.Article) error
 	GetPub(ctx context.Context, id int64) (domain.Article, error)
+	GetArticlesByIds(ctx context.Context, ids []int64) ([]domain.Article, []int64, error)
+	SetArticles(ctx context.Context, articles []domain.Article) error
+	IsArticleInTopN(ctx context.Context, biz string, id int64) (bool, error)
+	UpdateArticleInCache(ctx context.Context, biz string, article domain.Article) error
 }
 
 type ArticleRedisCache struct {
 	client redis.Cmdable
+}
+
+func (a *ArticleRedisCache) UpdateArticleInCache(ctx context.Context, biz string, article domain.Article) error {
+	// 确保键格式与GetArticlesByIds方法一致
+	articleKey := fmt.Sprintf("article:%d", article.Id)
+	_, err := a.client.HSet(ctx, articleKey, map[string]interface{}{
+		"title":    article.Title,
+		"abstract": article.Abstract(),
+	}).Result()
+	return err
+}
+
+func (a *ArticleRedisCache) IsArticleInTopN(ctx context.Context, biz string, id int64) (bool, error) {
+	// 这个功能，应该放在 Interactive 中，可以考虑在后续将 interactive 抽取层微服务后，进行修改。
+	topNKey := "topn:likes:" + biz
+	score, err := a.client.ZScore(ctx, topNKey, strconv.FormatInt(id, 10)).Result()
+	if errors.Is(err, redis.Nil) {
+		return false, nil // 文章不在Top N中
+	}
+	if err != nil {
+		return false, err // 执行出错
+	}
+	return score != 0, nil // 文章在Top N中，score不为0表示存在
+}
+
+// SetArticles 将一批文章的详细信息更新到缓存中
+// todo 是否需要设置过期时间？
+func (a *ArticleRedisCache) SetArticles(ctx context.Context, articles []domain.Article) error {
+	for _, article := range articles {
+		key := fmt.Sprintf("article:%d", article.Id)
+		fields := map[string]interface{}{
+			"title":    article.Title,
+			"abstract": article.Abstract(),
+		}
+		if err := a.client.HMSet(ctx, key, fields).Err(); err != nil {
+			// todo 做点什么好？
+			return err
+		}
+	}
+	return nil
+}
+
+// GetArticlesByIds 从缓存中获取一组文章的详细信息，返回找到的文章列表，以及未找到的文章ID列表
+func (a *ArticleRedisCache) GetArticlesByIds(ctx context.Context, ids []int64) ([]domain.Article, []int64, error) {
+	var foundArticles []domain.Article
+	var missingIds []int64
+
+	for _, id := range ids {
+		articleData, err := a.client.HGetAll(ctx, fmt.Sprintf("article:%d", id)).Result()
+		if err != nil || len(articleData) == 0 {
+			missingIds = append(missingIds, id)
+			continue
+		}
+
+		article := domain.Article{
+			Id:      id,
+			Title:   articleData["title"],
+			Content: articleData["abstract"],
+		}
+		foundArticles = append(foundArticles, article)
+	}
+
+	fmt.Println("命中缓存，得到文章内容集合")
+	return foundArticles, missingIds, nil
+
 }
 
 func (a *ArticleRedisCache) GetPub(ctx context.Context, id int64) (domain.Article, error) {

@@ -44,12 +44,14 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 
 	pub.POST("/like", ginx.WrapBodyAndClaims(h.Like))
 	pub.POST("/collect", ginx.WrapBodyAndClaims(h.Collect))
+	pub.GET("/top/:n", h.TopNArticle)
 }
 
 // Edit 接收一个 Article 输入，返回文章 ID
+// 创建一个 Article
 func (h *ArticleHandler) Edit(ctx *gin.Context, req vo.ArticleEditReq, uc ijwt.UserClaims) (ginx.Response, error) {
 
-	id, err := h.svc.Save(ctx, domain.Article{
+	id, err := h.svc.Save(ctx, h.biz, domain.Article{
 		Id:      req.Id,
 		Title:   req.Title,
 		Content: req.Content,
@@ -64,6 +66,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context, req vo.ArticleEditReq, uc ijwt.U
 	return ginx.Response{Data: id}, nil
 }
 
+// Publish 发布文章，也可能是修订文章
 func (h *ArticleHandler) Publish(ctx *gin.Context, req vo.ArticlePublishReq, uc ijwt.UserClaims) (ginx.Response, error) {
 
 	id, err := h.svc.Publish(ctx, domain.Article{
@@ -221,4 +224,62 @@ func (h *ArticleHandler) Collect(ctx *gin.Context, req vo.ArticleCollectReq, uc 
 		return ginx.Response{Code: 5, Msg: "系统错误"}, err
 	}
 	return ginx.Response{Msg: "OK"}, nil
+}
+
+// TopNArticle 处理获取点赞数前N的文章的请求
+// todo
+// 批量查询：从 Interactive 获取到 ArticleLike 数据集后
+// 可以一次性地从 Article 的缓存中查询所有相关的文章。
+// 这样做可以减少缓存访问次数，提高效率。
+// 缓存穿透：对于缓存中不存在的数据，查询数据库后应立即更新缓存，避免后续相同的查询再次穿透到数据库。
+func (h *ArticleHandler) TopNArticle(c *gin.Context) {
+	// 从URL参数中获取N的值
+	nStr := c.Param("n")
+	n, err := strconv.Atoi(nStr)
+	if err != nil {
+		// 如果N不是一个有效的整数，则返回错误
+		h.l.Error("Invalid parameter", logger.Error(err))
+		ginx.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// 使用 InteractiveService 的 GetTopNLikedArticles 方法获取数据
+	// 这里获取的是 文章ID 和 点赞数
+	topArticles, err := h.intrSvc.GetTopNLikedArticles(c.Request.Context(), h.biz, n)
+	if err != nil {
+		// 如果查询过程中出现错误，则返回错误
+		h.l.Error("Error getting top N liked articles", logger.Error(err))
+		ginx.Error(c, 5, err.Error())
+		return
+	}
+
+	// 构建文章ID的切片
+	ids := make([]int64, len(topArticles))
+	for i, al := range topArticles {
+		ids[i] = al.ArticleId
+	}
+
+	// 使用 ArticleService 的 GetByIds 方法获取数据
+	// 获取的是 TopN 的文章ID、标题和摘要
+	articles, err := h.svc.GetByIds(c.Request.Context(), ids)
+	if err != nil {
+		ginx.Error(c, 5, err.Error())
+		return
+	}
+
+	articlesMap := make(map[int64]domain.Article)
+	for _, article := range articles {
+		articlesMap[article.Id] = article
+	}
+
+	var sortedArticles []domain.Article
+	for _, id := range ids {
+		if article, exists := articlesMap[id]; exists {
+			sortedArticles = append(sortedArticles, article)
+		}
+	}
+
+	ginx.OK(c, ginx.Response{
+		Data: sortedArticles,
+	})
 }

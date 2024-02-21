@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"errors"
+	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -17,6 +18,7 @@ type ArticleDAO interface {
 	GetById(ctx context.Context, id int64) (Article, error)
 	GetPubById(ctx context.Context, id int64) (PublishedArticle, error)
 	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]PublishedArticle, error)
+	GetByIds(ctx context.Context, ids []int64) ([]PublishedArticle, error)
 }
 
 type Article struct {
@@ -35,14 +37,29 @@ type ArticleGORMDAO struct {
 	db *gorm.DB
 }
 
+func (a *ArticleGORMDAO) GetByIds(ctx context.Context, ids []int64) ([]PublishedArticle, error) {
+	var articles []PublishedArticle
+	if len(ids) == 0 {
+		return articles, nil
+	}
+
+	// 使用 GORM 的 Where 方法构建查询，以 `id IN (?)` 条件查找已发表的文章
+	if err := a.db.WithContext(ctx).
+		Where("id IN ? AND status = ?", ids, domain.ArticleStatusPublished).
+		Find(&articles).Error; err != nil {
+		return nil, err
+	}
+
+	return articles, nil
+}
+
 func (a *ArticleGORMDAO) ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]PublishedArticle, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*100)
 	defer cancel()
 	var res []PublishedArticle
-	const ArticleStatusPublished = 2
 	err := a.db.WithContext(ctx).
 		Where("utime < ? AND status = ?",
-			start.UnixMilli(), ArticleStatusPublished).
+			start.UnixMilli(), domain.ArticleStatusPublished).
 		Offset(offset).Limit(limit).
 		Find(&res).Error
 	return res, err

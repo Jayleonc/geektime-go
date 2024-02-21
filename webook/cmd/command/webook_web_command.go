@@ -1,17 +1,14 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jayleonc/geektime-go/webook/cmd/wire"
-	"github.com/jayleonc/geektime-go/webook/ioc"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"net/http"
-	"time"
 )
 
 func NewWebookCommand() *cobra.Command {
@@ -42,12 +39,12 @@ func runApp() {
 	initLogger()
 	initPrometheus()
 
-	otel := ioc.InitOTEL()
-	defer func() {
-		ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second)
-		defer cancelFunc()
-		otel(ctx)
-	}()
+	//otel := ioc.InitOTEL()
+	//defer func() {
+	//	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second)
+	//	defer cancelFunc()
+	//	otel(ctx)
+	//}()
 
 	app := wire.InitWebServer()
 	// 启动 Kafka 消费者

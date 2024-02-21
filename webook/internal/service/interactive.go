@@ -14,10 +14,19 @@ type InteractiveService interface {
 	Collect(ctx context.Context, biz string, bizId, cid, uid int64) error
 	Get(ctx context.Context, biz string, id int64, uid int64) (domain.Interactive, error)
 	GetByIds(ctx context.Context, biz string, ids []int64) (map[int64]domain.Interactive, error)
+	GetTopNLikedArticles(ctx context.Context, biz string, N int) ([]domain.ArticleLike, error)
 }
 
 type interactiveService struct {
 	repo repository.InteractiveRepository
+}
+
+func (i *interactiveService) GetTopNLikedArticles(ctx context.Context, biz string, n int) ([]domain.ArticleLike, error) {
+	topArticles, err := i.repo.GetTopNLikedArticles(ctx, biz, n)
+	if err != nil {
+		return nil, err
+	}
+	return topArticles, nil
 }
 
 func (i *interactiveService) GetByIds(ctx context.Context, biz string, ids []int64) (map[int64]domain.Interactive, error) {
