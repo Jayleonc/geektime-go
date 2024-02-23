@@ -18,7 +18,7 @@ type InteractiveDAO interface {
 	GetCollectInfo(ctx context.Context, biz string, id int64, uid int64) (UserCollectionBiz, error)
 	Get(ctx context.Context, biz string, id int64) (Interactive, error)
 	GetByIds(ctx context.Context, biz string, ids []int64) ([]Interactive, error)
-	// GetTopNLikedArticles 得到点赞数前 N 的 文章Id
+	// GetTopNLikedInteractive 得到点赞数前 N 的 文章Id
 	GetTopNLikedInteractive(ctx context.Context, biz string, n int) ([]Interactive, error)
 }
 

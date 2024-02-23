@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ecodeclub/ekit/slice"
-	"github.com/jayleonc/geektime-go/webook/internal/domain"
-	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
-	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
+	"github.com/jayleonc/geektime-go/webook/interactive/domain"
+	er "github.com/jayleonc/geektime-go/webook/interactive/error"
+	"github.com/jayleonc/geektime-go/webook/interactive/repository/cache"
+	"github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
 )
 
 type InteractiveRepository interface {
@@ -133,7 +134,7 @@ func (c *CachedInteractiveRepository) Liked(ctx context.Context, biz string, id 
 	switch {
 	case err == nil:
 		return true, nil
-	case errors.Is(err, dao.ErrRecordNotFound):
+	case errors.Is(err, er.ErrRecordNotFound):
 		return false, nil
 	default:
 		return false, err
@@ -145,7 +146,7 @@ func (c *CachedInteractiveRepository) Collected(ctx context.Context, biz string,
 	switch {
 	case err == nil:
 		return true, nil
-	case errors.Is(err, dao.ErrRecordNotFound):
+	case errors.Is(err, er.ErrRecordNotFound):
 		return false, nil
 	default:
 		return false, err

@@ -3,6 +3,8 @@ package web
 import (
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
+	domain2 "github.com/jayleonc/geektime-go/webook/interactive/domain"
+	service2 "github.com/jayleonc/geektime-go/webook/interactive/service"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
 	ijwt "github.com/jayleonc/geektime-go/webook/internal/web/jwt"
@@ -17,12 +19,12 @@ import (
 
 type ArticleHandler struct {
 	svc     service.ArticleService
-	intrSvc service.InteractiveService
+	intrSvc service2.InteractiveService
 	l       logger.Logger
 	biz     string
 }
 
-func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc service.InteractiveService) *ArticleHandler {
+func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc service2.InteractiveService) *ArticleHandler {
 	return &ArticleHandler{
 		l:       l,
 		svc:     svc,
@@ -157,7 +159,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	var (
 		eg   errgroup.Group
 		art  domain.Article
-		intr domain.Interactive
+		intr domain2.Interactive
 	)
 
 	uc := ctx.MustGet("user").(ijwt.UserClaims)

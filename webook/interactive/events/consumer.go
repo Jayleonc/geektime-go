@@ -1,13 +1,20 @@
-package article
+package events
 
 import (
 	"context"
 	"fmt"
 	"github.com/IBM/sarama"
-	"github.com/jayleonc/geektime-go/webook/internal/repository"
+	"github.com/jayleonc/geektime-go/webook/interactive/repository"
 	"github.com/jayleonc/geektime-go/webook/pkg/saramax"
 	"time"
 )
+
+const ReadEventTopic = "read_article"
+
+type ReadEvent struct {
+	Uid int64
+	Aid int64
+}
 
 type InteractiveReadEventConsumer struct {
 	repo   repository.InteractiveRepository

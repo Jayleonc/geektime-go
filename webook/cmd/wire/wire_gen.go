@@ -8,8 +8,12 @@ package wire
 
 import (
 	"github.com/google/wire"
-	"github.com/jayleonc/geektime-go/webook/internal/events/article"
-	"github.com/jayleonc/geektime-go/webook/internal/events/article/prometheus"
+	"github.com/jayleonc/geektime-go/webook/interactive/events"
+	"github.com/jayleonc/geektime-go/webook/interactive/events/prometheus"
+	repository2 "github.com/jayleonc/geektime-go/webook/interactive/repository"
+	cache2 "github.com/jayleonc/geektime-go/webook/interactive/repository/cache"
+	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
+	service2 "github.com/jayleonc/geektime-go/webook/interactive/service"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -49,13 +53,13 @@ func InitWebServer() *App {
 	syncProducer := ioc.NewSyncProducer(client)
 	producer := ioc.NewKafkaProducerWithMetricsDecorator(syncProducer)
 	articleService := service.NewArticleService(articleRepository, producer)
-	interactiveDAO := dao.NewGORMInteractiveDAO(db)
-	interactiveCache := cache.NewInteractiveRedisCache(cmdable)
-	interactiveRepository := repository.NewCachedInteractiveRepository(interactiveDAO, interactiveCache)
-	interactiveService := service.NewInteractiveService(interactiveRepository)
+	interactiveDAO := dao2.NewGORMInteractiveDAO(db)
+	interactiveCache := cache2.NewInteractiveRedisCache(cmdable)
+	interactiveRepository := repository2.NewCachedInteractiveRepository(interactiveDAO, interactiveCache)
+	interactiveService := service2.NewInteractiveService(interactiveRepository)
 	articleHandler := web.NewArticleHandler(logger, articleService, interactiveService)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
-	interactiveReadEventConsumer := article.NewInteractiveReadEventConsumer(interactiveRepository, client)
+	interactiveReadEventConsumer := events.NewInteractiveReadEventConsumer(interactiveRepository, client)
 	interactiveReadEventConsumerWithMetrics := prometheus.NewInteractiveReadEventConsumerWithMetrics(interactiveReadEventConsumer)
 	v2 := ioc.RegisterConsumers(interactiveReadEventConsumerWithMetrics)
 	rankingCache := cache.NewRankingRedisCache(cmdable)
@@ -77,7 +81,7 @@ func InitWebServer() *App {
 
 // wire.go:
 
-var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO, cache.NewInteractiveRedisCache, repository.NewCachedInteractiveRepository, service.NewInteractiveService)
+var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO, cache2.NewInteractiveRedisCache, repository2.NewCachedInteractiveRepository, service2.NewInteractiveService)
 
 var rankingSvcSet = wire.NewSet(cache.NewRankingRedisCache, repository.NewCachedRankingRepository, service.NewBatchRankingService)
 

@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 	"github.com/IBM/sarama"
-	"github.com/jayleonc/geektime-go/webook/internal/events/article"
+	"github.com/jayleonc/geektime-go/webook/interactive/events"
 	"github.com/jayleonc/geektime-go/webook/pkg/saramax"
 	"github.com/prometheus/client_golang/prometheus"
 	"time"
 )
 
 type InteractiveReadEventConsumerWithMetrics struct {
-	*article.InteractiveReadEventConsumer
+	*events.InteractiveReadEventConsumer
 	consumeDurationVec *prometheus.SummaryVec
 	consumeCounterVec  *prometheus.CounterVec
 }
 
-func NewInteractiveReadEventConsumerWithMetrics(consumer *article.InteractiveReadEventConsumer) *InteractiveReadEventConsumerWithMetrics {
+func NewInteractiveReadEventConsumerWithMetrics(consumer *events.InteractiveReadEventConsumer) *InteractiveReadEventConsumerWithMetrics {
 	consumeDurationVec := prometheus.NewSummaryVec(prometheus.SummaryOpts{
 		Namespace: "geektime_jayleonc",
 		Subsystem: "webook",
@@ -39,7 +39,7 @@ func NewInteractiveReadEventConsumerWithMetrics(consumer *article.InteractiveRea
 	}
 }
 
-func (r *InteractiveReadEventConsumerWithMetrics) Consume(msg *sarama.ConsumerMessage, t article.ReadEvent) error {
+func (r *InteractiveReadEventConsumerWithMetrics) Consume(msg *sarama.ConsumerMessage, t events.ReadEvent) error {
 	startTime := time.Now()
 
 	err := r.InteractiveReadEventConsumer.Consume(msg, t)
@@ -62,7 +62,7 @@ func (r *InteractiveReadEventConsumerWithMetrics) Start() error {
 	}
 
 	go func() {
-		er := cgroup.Consume(context.Background(), []string{article.ReadEventTopic}, saramax.NewHandler[article.ReadEvent](r.Consume))
+		er := cgroup.Consume(context.Background(), []string{events.ReadEventTopic}, saramax.NewHandler[events.ReadEvent](r.Consume))
 		if er != nil {
 			fmt.Println("退出消费循环", er)
 		}

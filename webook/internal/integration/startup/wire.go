@@ -5,6 +5,10 @@ package startup
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	repository2 "github.com/jayleonc/geektime-go/webook/interactive/repository"
+	cache2 "github.com/jayleonc/geektime-go/webook/interactive/repository/cache"
+	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
+	service2 "github.com/jayleonc/geektime-go/webook/interactive/service"
 	"github.com/jayleonc/geektime-go/webook/internal/events/article"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
@@ -39,10 +43,10 @@ var articlSvcProvider = wire.NewSet(
 	dao.NewArticleGORMDAO,
 	service.NewArticleService)
 
-var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO,
-	cache.NewInteractiveRedisCache,
-	repository.NewCachedInteractiveRepository,
-	service.NewInteractiveService,
+var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO,
+	cache2.NewInteractiveRedisCache,
+	repository2.NewCachedInteractiveRepository,
+	service2.NewInteractiveService,
 )
 
 func InitWebServer() *gin.Engine {
@@ -91,4 +95,9 @@ func InitArticleHandler(dao dao.ArticleDAO) *web.ArticleHandler {
 func InitJobScheduler() *job.Scheduler {
 	wire.Build(jobProviderSet, thirdPartySet, job.NewScheduler)
 	return &job.Scheduler{}
+}
+
+func InitInteractiveService() service2.InteractiveService {
+	wire.Build(thirdPartySet, interactiveSvcSet)
+	return service2.NewInteractiveService(nil)
 }

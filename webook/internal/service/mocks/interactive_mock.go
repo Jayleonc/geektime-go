@@ -10,9 +10,9 @@ package mock_service
 
 import (
 	context "context"
+	"github.com/jayleonc/geektime-go/webook/interactive/domain"
 	reflect "reflect"
 
-	domain "github.com/jayleonc/geektime-go/webook/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -20,6 +20,11 @@ import (
 type MockInteractiveService struct {
 	ctrl     *gomock.Controller
 	recorder *MockInteractiveServiceMockRecorder
+}
+
+func (m *MockInteractiveService) GetTopNLikedArticles(ctx context.Context, biz string, N int) ([]domain.ArticleLike, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 // MockInteractiveServiceMockRecorder is the mock recorder for MockInteractiveService.

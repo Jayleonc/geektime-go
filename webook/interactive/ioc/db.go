@@ -1,8 +1,7 @@
 package ioc
 
 import (
-	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
-	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
+	"github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/pkg/gormx"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
@@ -69,10 +68,6 @@ func InitDB(l logger.Logger) *gorm.DB {
 
 	db.Use(tracing.NewPlugin(tracing.WithoutMetrics(), tracing.WithDBName("geektime")))
 	err = dao.InitTables(db)
-	if err != nil {
-		return nil
-	}
-	err = dao2.InitTables(db)
 	if err != nil {
 		return nil
 	}

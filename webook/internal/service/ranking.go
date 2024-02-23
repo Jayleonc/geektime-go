@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ecodeclub/ekit/queue"
 	"github.com/ecodeclub/ekit/slice"
+	"github.com/jayleonc/geektime-go/webook/interactive/service"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"math"
@@ -16,7 +17,7 @@ type RankingService interface {
 }
 
 type BatchRankingService struct {
-	interSvc  InteractiveService
+	interSvc  service.InteractiveService
 	artSvc    ArticleService
 	batchSize int
 	n         int
@@ -29,7 +30,7 @@ func (b *BatchRankingService) GetTopN(ctx context.Context) ([]domain.Article, er
 	return b.repo.GetTopN(ctx)
 }
 
-func NewBatchRankingService(interSvc InteractiveService, artSvc ArticleService, repo repository.RankingRepository) RankingService {
+func NewBatchRankingService(interSvc service.InteractiveService, artSvc ArticleService, repo repository.RankingRepository) RankingService {
 	return &BatchRankingService{
 		interSvc:  interSvc,
 		artSvc:    artSvc,

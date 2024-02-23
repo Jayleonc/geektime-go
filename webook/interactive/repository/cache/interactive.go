@@ -4,7 +4,8 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/jayleonc/geektime-go/webook/internal/domain"
+	"github.com/jayleonc/geektime-go/webook/interactive/domain"
+	er "github.com/jayleonc/geektime-go/webook/interactive/error"
 	"github.com/redis/go-redis/v9"
 	"strconv"
 	"time"
@@ -113,8 +114,11 @@ func (i *InteractiveRedisCache) Get(ctx context.Context, biz string, id int64) (
 	if err != nil {
 		return domain.Interactive{}, err
 	}
-
+	if len(res) == 0 {
+		return domain.Interactive{}, er.ErrKeyNotExist
+	}
 	var intr domain.Interactive
+	intr.BizId = id
 	intr.ReadCnt, _ = strconv.ParseInt(res[fieldReadCnt], 10, 64)
 	intr.LikeCnt, _ = strconv.ParseInt(res[fieldLikeCnt], 10, 64)
 	intr.CollectCnt, _ = strconv.ParseInt(res[fieldCollectCnt], 10, 64)

@@ -4,8 +4,12 @@ package wire
 
 import (
 	"github.com/google/wire"
-	"github.com/jayleonc/geektime-go/webook/internal/events/article"
-	"github.com/jayleonc/geektime-go/webook/internal/events/article/prometheus"
+	"github.com/jayleonc/geektime-go/webook/interactive/events"
+	"github.com/jayleonc/geektime-go/webook/interactive/events/prometheus"
+	repository2 "github.com/jayleonc/geektime-go/webook/interactive/repository"
+	cache2 "github.com/jayleonc/geektime-go/webook/interactive/repository/cache"
+	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
+	service2 "github.com/jayleonc/geektime-go/webook/interactive/service"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -18,10 +22,10 @@ import (
 )
 
 var interactiveSvcSet = wire.NewSet(
-	dao.NewGORMInteractiveDAO,
-	cache.NewInteractiveRedisCache,
-	repository.NewCachedInteractiveRepository,
-	service.NewInteractiveService,
+	dao2.NewGORMInteractiveDAO,
+	cache2.NewInteractiveRedisCache,
+	repository2.NewCachedInteractiveRepository,
+	service2.NewInteractiveService,
 )
 
 var rankingSvcSet = wire.NewSet(cache.NewRankingRedisCache, repository.NewCachedRankingRepository, service.NewBatchRankingService)
@@ -48,7 +52,7 @@ func InitWebServer() *App {
 		cache.NewUserCache,
 		cache.NewArticleRedisCache,
 
-		article.NewInteractiveReadEventConsumer,
+		events.NewInteractiveReadEventConsumer,
 		prometheus.NewInteractiveReadEventConsumerWithMetrics,
 		//article.NewKafkaProducer,
 		ioc.NewKafkaProducerWithMetricsDecorator,
