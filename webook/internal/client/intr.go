@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"github.com/ecodeclub/ekit/syncx/atomicx"
 	intrv1 "github.com/jayleonc/geektime-go/webook/api/proto/gen/intr/v1"
 	"google.golang.org/grpc"
@@ -54,8 +55,10 @@ func NewInteractiveClient(remote intrv1.InteractiveServiceClient, local intrv1.I
 func (i *InteractiveClient) selectClient() intrv1.InteractiveServiceClient {
 	num := rand.Int31n(100)
 	if num < i.threshold.Load() {
+		fmt.Println("调用了RPC Intr")
 		return i.remote
 	}
+	fmt.Println("调用了本地Intr")
 	return i.local
 }
 

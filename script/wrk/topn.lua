@@ -1,5 +1,5 @@
 wrk.method = "GET"
 wrk.headers["Content-Type"] = "application/json"
 wrk.headers["User-Agent"] = "PostmanRuntime/7.32.3"
-wrk.headers["Authorization"] = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDg1MDUzOTgsIlVpZCI6MSwiU3NpZCI6IjBmODY4NjhkLTRkOWYtNDU3Yy1hZTc0LWM1OWNiYTE4M2U0MyIsIkVtYWlsIjoiSmF5bGVvbmNAMTYzLmNvbSIsIlBob25lIjoiIiwiVXNlckFnZW50IjoiUG9zdG1hblJ1bnRpbWUvNy4zNi4zIn0.oLy4-YRdmINRZCwp0xAIW0fWBMBmAvbNnWO_dxvRN8cMpO0x_e_-c8xh3Pdc3lLosnRY4X8nTCzn8SLhYSNxKA"
-wrk.path = "/articles/pub/top/10"
+wrk.headers["Authorization"] = "Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDg5NTMxMDksIlVpZCI6MSwiU3NpZCI6IjEwM2IyNTBmLTViYzktNDNiYS1hY2U1LTAwMzQyZGVhMjFkNCIsIkVtYWlsIjoiSmF5bGVvbmNAMTYzLmNvbSIsIlBob25lIjoiIiwiVXNlckFnZW50IjoiUG9zdG1hblJ1bnRpbWUvNy4zNi4zIn0.p0pmUdd3AbZP2FTkRDu3Kb_knXeRn03pxtd9FfF2eMLibwcF5bG58eCYMGUxlIYoq5S4O865_n6ZpPUhB430ow"
+wrk.path = "/articles/pub/top/1"

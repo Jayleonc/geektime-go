@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/ecodeclub/ekit/slice"
+	intrv1 "github.com/jayleonc/geektime-go/webook/api/proto/gen/intr/v1"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
@@ -18,18 +19,69 @@ type ArticleRepository interface {
 	GetByAuthor(ctx context.Context, uid int64, limit int, offset int) ([]domain.Article, int64, error)
 	SyncStatus(ctx context.Context, uid int64, id int64, status domain.ArticleStatus) error
 	GetById(ctx context.Context, id int64) (domain.Article, error)
-	GetPubById(ctx context.Context, id int64) (domain.Article, error)
+	GetPubById(ctx context.Context, biz string, id int64, uid int64) (domain.Article, *intrv1.GetResponse, error)
 	ListPub(ctx context.Context, start time.Time, offset int, limit int) ([]domain.Article, error)
 	GetByIds(ctx context.Context, ids []int64) ([]domain.Article, error)
+
+	Like(ctx context.Context, bia string, id, uid int64, like bool) error
+	Collect(ctx context.Context, biz string, id int64, cid int64, uid int64) error
+	GetTopNIntr(ctx context.Context, req *intrv1.GetTopNLikedArticlesRequest) (*intrv1.GetTopNLikedArticlesResponse, error)
 }
 
 type CachedArticleRepository struct {
+	rpc   intrv1.InteractiveServiceClient
 	dao   dao.ArticleDAO
 	cache cache.ArticleCache
 
 	userRepo UserRepository
 
 	db *gorm.DB
+}
+
+func (c *CachedArticleRepository) GetTopNIntr(ctx context.Context, req *intrv1.GetTopNLikedArticlesRequest) (*intrv1.GetTopNLikedArticlesResponse, error) {
+	articles, err := c.rpc.GetTopNLikedArticles(ctx, req)
+	if err != nil {
+		return &intrv1.GetTopNLikedArticlesResponse{}, err
+	}
+	return articles, nil
+}
+
+func (c *CachedArticleRepository) Collect(ctx context.Context, biz string, id int64, cid int64, uid int64) error {
+	collectReq := &intrv1.CollectRequest{
+		Biz:   biz,
+		BizId: id,
+		Cid:   cid,
+		Uid:   uid,
+	}
+	_, err := c.rpc.Collect(ctx, collectReq)
+	return err
+}
+
+func (c *CachedArticleRepository) Like(ctx context.Context, biz string, id, uid int64, like bool) error {
+	likeReq := &intrv1.LikeRequest{
+		Biz: biz,
+		Id:  id,
+		Uid: uid,
+	}
+
+	cancelLikeReq := &intrv1.CancelLikeRequest{
+		Biz: biz,
+		Id:  id,
+		Uid: uid,
+	}
+	var err error
+	if like {
+		_, err = c.rpc.Like(ctx, likeReq)
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err = c.rpc.CancelLike(ctx, cancelLikeReq)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *CachedArticleRepository) GetByIds(ctx context.Context, ids []int64) ([]domain.Article, error) {
@@ -79,21 +131,41 @@ func (c *CachedArticleRepository) ListPub(ctx context.Context, start time.Time, 
 		}), nil
 }
 
-func (c *CachedArticleRepository) GetPubById(ctx context.Context, id int64) (domain.Article, error) {
-	res, err := c.cache.GetPub(ctx, id)
-	if err == nil {
-		return res, err
+func (c *CachedArticleRepository) GetPubById(ctx context.Context, biz string, id int64, uid int64) (domain.Article, *intrv1.GetResponse, error) {
+	req := &intrv1.GetRequest{
+		Biz: biz,
+		Id:  id,
+		Uid: uid,
 	}
+
+	intrRes := &intrv1.GetResponse{}
+	res, err := c.cache.GetPub(ctx, id)
+
+	// 这里能不能通过 rpc 的 cache 来获取？
+	// 不对，具体是用 cache 还是 dao，是 rpc 内部实现的指责，和我这里没有关系。
+	intrRes, er := c.rpc.Get(ctx, req)
+
+	// 如果获取 intr 数据失败，返回零值
+	if er != nil && err == nil {
+		// todo 试一下，如果里面没有赋值，会不会报错。
+		return res, intrRes, err
+		//return res, &intrv1.GetResponse{}, err
+	}
+
+	if err == nil {
+		return res, intrRes, err
+	}
+
 	art, err := c.dao.GetPubById(ctx, id)
 	if err != nil {
-		return domain.Article{}, err
+		return domain.Article{}, intrRes, err
 	}
 	// 查询对应的 User 信息, 拿到创作者信息
 	res = c.toDomain(dao.Article(art))
 	user, err := c.userRepo.FindById(ctx, res.Author.Id)
 	if err != nil {
 		// 记录日志
-		return domain.Article{}, err
+		return domain.Article{}, intrRes, err
 	}
 	res.Author.Name = user.Nickname
 	go func() {
@@ -104,7 +176,7 @@ func (c *CachedArticleRepository) GetPubById(ctx context.Context, id int64) (dom
 			// 记录日志
 		}
 	}()
-	return res, nil
+	return res, intrRes, nil
 }
 
 func (c *CachedArticleRepository) GetById(ctx context.Context, id int64) (domain.Article, error) {
@@ -247,8 +319,9 @@ func (c *CachedArticleRepository) SyncV2(ctx context.Context, art domain.Article
 
 }
 
-func NewCachedArticleRepository(dao dao.ArticleDAO, cache cache.ArticleCache, userRepo UserRepository) ArticleRepository {
+func NewCachedArticleRepository(dao dao.ArticleDAO, cache cache.ArticleCache, userRepo UserRepository, intrRpc intrv1.InteractiveServiceClient) ArticleRepository {
 	return &CachedArticleRepository{
+		rpc:      intrRpc,
 		dao:      dao,
 		cache:    cache,
 		userRepo: userRepo,

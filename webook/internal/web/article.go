@@ -17,18 +17,16 @@ import (
 )
 
 type ArticleHandler struct {
-	svc     service.ArticleService
-	intrSvc intrv1.InteractiveServiceClient
-	l       logger.Logger
-	biz     string
+	svc service.ArticleService
+	l   logger.Logger
+	biz string
 }
 
-func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc intrv1.InteractiveServiceClient) *ArticleHandler {
+func NewArticleHandler(l logger.Logger, svc service.ArticleService) *ArticleHandler {
 	return &ArticleHandler{
-		l:       l,
-		svc:     svc,
-		intrSvc: intrSvc,
-		biz:     "article",
+		l:   l,
+		svc: svc,
+		biz: "article",
 	}
 }
 
@@ -164,19 +162,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	uc := ctx.MustGet("user").(ijwt.UserClaims)
 	eg.Go(func() error {
 		var er error
-		art, er = h.svc.GetPubById(ctx, id, uc.Uid)
-		return er
-	})
-
-	// todo 这里有 bug
-	eg.Go(func() error {
-		var er error
-		req := &intrv1.GetRequest{
-			Biz: h.biz,
-			Id:  id,
-			Uid: uc.Uid,
-		}
-		intr, er = h.intrSvc.Get(ctx, req)
+		art, intr, er = h.svc.GetPubById(ctx, h.biz, id, uc.Uid)
 		return er
 	})
 	err = eg.Wait()
@@ -206,23 +192,8 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 func (h *ArticleHandler) Like(ctx *gin.Context, req vo.ArticleLikeReq, uc ijwt.UserClaims) (ginx.Response, error) {
 	var err error
 
-	likeReq := &intrv1.LikeRequest{
-		Biz: h.biz,
-		Id:  req.Id,
-		Uid: uc.Uid,
-	}
+	err = h.svc.Like(ctx, h.biz, req.Id, uc.Uid, req.Like)
 
-	cancelLikeReq := &intrv1.CancelLikeRequest{
-		Biz: h.biz,
-		Id:  req.Id,
-		Uid: uc.Uid,
-	}
-
-	if req.Like {
-		_, err = h.intrSvc.Like(ctx, likeReq)
-	} else {
-		_, err = h.intrSvc.CancelLike(ctx, cancelLikeReq)
-	}
 	if err != nil {
 		ginx.Error(ctx, 5, "系统错误")
 		return ginx.Response{Code: 5, Msg: "系统错误"}, err
@@ -236,14 +207,7 @@ func (h *ArticleHandler) Collect(ctx *gin.Context, req vo.ArticleCollectReq, uc 
 		Cid int64 `json:"cid,omitempty"`
 	}
 
-	collectReq := &intrv1.CollectRequest{
-		Biz:   h.biz,
-		BizId: req.Id,
-		Cid:   req.Cid,
-		Uid:   uc.Uid,
-	}
-
-	_, err := h.intrSvc.Collect(ctx, collectReq)
+	err := h.svc.Collect(ctx, h.biz, req.Id, req.Cid, uc.Uid)
 
 	if err != nil {
 		ginx.Error(ctx, 5, "系统错误")
@@ -253,7 +217,6 @@ func (h *ArticleHandler) Collect(ctx *gin.Context, req vo.ArticleCollectReq, uc 
 }
 
 // TopNArticle 处理获取点赞数前N的文章的请求
-// todo
 // 批量查询：从 Interactive 获取到 ArticleLike 数据集后
 // 可以一次性地从 Article 的缓存中查询所有相关的文章。
 // 这样做可以减少缓存访问次数，提高效率。
@@ -268,47 +231,9 @@ func (h *ArticleHandler) TopNArticle(c *gin.Context) {
 		ginx.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	req := &intrv1.GetTopNLikedArticlesRequest{
-		Biz: h.biz,
-		N:   int32(n),
-	}
-
-	// 使用 InteractiveService 的 GetTopNLikedArticles 方法获取数据
-	// 这里获取的是 文章ID 和 点赞数
-	topArticles, err := h.intrSvc.GetTopNLikedArticles(c.Request.Context(), req)
-	if err != nil {
-		// 如果查询过程中出现错误，则返回错误
-		h.l.Error("Error getting top N liked articles", logger.Error(err))
-		ginx.Error(c, 5, err.Error())
-		return
-	}
-
-	// 构建文章ID的切片
-	ids := make([]int64, len(topArticles.ArticleLike))
-	for i, al := range topArticles.ArticleLike {
-		ids[i] = al.ArticleId
-	}
-
-	// 使用 ArticleService 的 GetByIds 方法获取数据
-	// 获取的是 TopN 的文章ID、标题和摘要
-	articles, err := h.svc.GetByIds(c.Request.Context(), ids)
-	if err != nil {
-		ginx.Error(c, 5, err.Error())
-		return
-	}
-
-	articlesMap := make(map[int64]domain.Article)
-	for _, article := range articles {
-		articlesMap[article.Id] = article
-	}
-
 	var sortedArticles []domain.Article
-	for _, id := range ids {
-		if article, exists := articlesMap[id]; exists {
-			sortedArticles = append(sortedArticles, article)
-		}
-	}
+
+	sortedArticles, err = h.svc.GetTopNArticles(c.Request.Context(), h.biz, n)
 
 	ginx.OK(c, ginx.Response{
 		Data: sortedArticles,
