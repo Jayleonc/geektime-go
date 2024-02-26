@@ -3,8 +3,7 @@ package web
 import (
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/gin-gonic/gin"
-	domain2 "github.com/jayleonc/geektime-go/webook/interactive/domain"
-	service2 "github.com/jayleonc/geektime-go/webook/interactive/service"
+	intrv1 "github.com/jayleonc/geektime-go/webook/api/proto/gen/intr/v1"
 	"github.com/jayleonc/geektime-go/webook/internal/domain"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
 	ijwt "github.com/jayleonc/geektime-go/webook/internal/web/jwt"
@@ -19,12 +18,12 @@ import (
 
 type ArticleHandler struct {
 	svc     service.ArticleService
-	intrSvc service2.InteractiveService
+	intrSvc intrv1.InteractiveServiceClient
 	l       logger.Logger
 	biz     string
 }
 
-func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc service2.InteractiveService) *ArticleHandler {
+func NewArticleHandler(l logger.Logger, svc service.ArticleService, intrSvc intrv1.InteractiveServiceClient) *ArticleHandler {
 	return &ArticleHandler{
 		l:       l,
 		svc:     svc,
@@ -159,7 +158,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	var (
 		eg   errgroup.Group
 		art  domain.Article
-		intr domain2.Interactive
+		intr *intrv1.GetResponse
 	)
 
 	uc := ctx.MustGet("user").(ijwt.UserClaims)
@@ -172,7 +171,12 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	// todo 这里有 bug
 	eg.Go(func() error {
 		var er error
-		intr, er = h.intrSvc.Get(ctx, h.biz, id, uc.Uid)
+		req := &intrv1.GetRequest{
+			Biz: h.biz,
+			Id:  id,
+			Uid: uc.Uid,
+		}
+		intr, er = h.intrSvc.Get(ctx, req)
 		return er
 	})
 	err = eg.Wait()
@@ -190,21 +194,34 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 		Ctime:      art.Ctime.Format(time.DateTime),
 		Utime:      art.Utime.Format(time.DateTime),
 
-		ReadCnt:    intr.ReadCnt,
-		LikeCnt:    intr.LikeCnt,
-		CollectCnt: intr.CollectCnt,
-		Liked:      intr.Liked,
-		Collected:  intr.Collected,
+		ReadCnt:    intr.Intr.ReadCnt,
+		LikeCnt:    intr.Intr.LikeCnt,
+		CollectCnt: intr.Intr.CollectCnt,
+		Liked:      intr.Intr.Liked,
+		Collected:  intr.Intr.Collected,
 	}
 	ginx.OK(ctx, ginx.Response{Data: v})
 }
 
 func (h *ArticleHandler) Like(ctx *gin.Context, req vo.ArticleLikeReq, uc ijwt.UserClaims) (ginx.Response, error) {
 	var err error
+
+	likeReq := &intrv1.LikeRequest{
+		Biz: h.biz,
+		Id:  req.Id,
+		Uid: uc.Uid,
+	}
+
+	cancelLikeReq := &intrv1.CancelLikeRequest{
+		Biz: h.biz,
+		Id:  req.Id,
+		Uid: uc.Uid,
+	}
+
 	if req.Like {
-		err = h.intrSvc.Like(ctx, h.biz, req.Id, uc.Uid)
+		_, err = h.intrSvc.Like(ctx, likeReq)
 	} else {
-		err = h.intrSvc.CancelLike(ctx, h.biz, req.Id, uc.Uid)
+		_, err = h.intrSvc.CancelLike(ctx, cancelLikeReq)
 	}
 	if err != nil {
 		ginx.Error(ctx, 5, "系统错误")
@@ -219,7 +236,14 @@ func (h *ArticleHandler) Collect(ctx *gin.Context, req vo.ArticleCollectReq, uc 
 		Cid int64 `json:"cid,omitempty"`
 	}
 
-	err := h.intrSvc.Collect(ctx, h.biz, req.Id, req.Cid, uc.Uid)
+	collectReq := &intrv1.CollectRequest{
+		Biz:   h.biz,
+		BizId: req.Id,
+		Cid:   req.Cid,
+		Uid:   uc.Uid,
+	}
+
+	_, err := h.intrSvc.Collect(ctx, collectReq)
 
 	if err != nil {
 		ginx.Error(ctx, 5, "系统错误")
@@ -245,9 +269,14 @@ func (h *ArticleHandler) TopNArticle(c *gin.Context) {
 		return
 	}
 
+	req := &intrv1.GetTopNLikedArticlesRequest{
+		Biz: h.biz,
+		N:   int32(n),
+	}
+
 	// 使用 InteractiveService 的 GetTopNLikedArticles 方法获取数据
 	// 这里获取的是 文章ID 和 点赞数
-	topArticles, err := h.intrSvc.GetTopNLikedArticles(c.Request.Context(), h.biz, n)
+	topArticles, err := h.intrSvc.GetTopNLikedArticles(c.Request.Context(), req)
 	if err != nil {
 		// 如果查询过程中出现错误，则返回错误
 		h.l.Error("Error getting top N liked articles", logger.Error(err))
@@ -256,8 +285,8 @@ func (h *ArticleHandler) TopNArticle(c *gin.Context) {
 	}
 
 	// 构建文章ID的切片
-	ids := make([]int64, len(topArticles))
-	for i, al := range topArticles {
+	ids := make([]int64, len(topArticles.ArticleLike))
+	for i, al := range topArticles.ArticleLike {
 		ids[i] = al.ArticleId
 	}
 

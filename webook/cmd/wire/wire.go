@@ -57,6 +57,7 @@ func InitWebServer() *App {
 		//article.NewKafkaProducer,
 		ioc.NewKafkaProducerWithMetricsDecorator,
 		interactiveSvcSet,
+		ioc.NewIntrClient,
 		rankingSvcSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+	"log"
 	"net/http"
 )
 
@@ -35,7 +36,8 @@ func initConfig() {
 }
 
 func runApp() {
-	initConfig()
+	//initConfig()
+	initViperWatch()
 	initLogger()
 	initPrometheus()
 
@@ -82,4 +84,18 @@ func initLogger() {
 		panic(err)
 	}
 	zap.ReplaceGlobals(logger)
+}
+
+func initViperWatch() {
+	viper.SetConfigType("yaml")
+	viper.SetConfigFile(Flags.Config) // Ensure Flags.Config has been initialized with the config file path
+	viper.WatchConfig()
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	val := viper.Get("test.key") // Ensure 'test.key' exists in the configuration file
+	log.Println(val)
 }

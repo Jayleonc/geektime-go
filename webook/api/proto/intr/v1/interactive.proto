@@ -83,8 +83,7 @@ message LikeRequest {
 }
 
 message LikeResponse {
-  string biz = 1;
-  int64 biz_id = 2;
+
 }
 
 message IncrReadCntRequest {
