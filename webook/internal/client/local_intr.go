@@ -65,7 +65,7 @@ func (l *LocalInteractiveServiceAdapter) GetTopNLikedArticles(ctx context.Contex
 		return nil, err
 	}
 
-	var topns = make([]*intrv1.ArticleLike, len(res))
+	var topns []*intrv1.ArticleLike
 	for _, v := range res {
 		topns = append(topns, l.toTopNDTO(v))
 	}
