@@ -2,10 +2,12 @@ package wire
 
 import (
 	"github.com/jayleonc/geektime-go/webook/internal/events"
+	"github.com/jayleonc/geektime-go/webook/pkg/ginx"
 	"github.com/jayleonc/geektime-go/webook/pkg/grpcx"
 )
 
 type App struct {
-	Consumers []events.Consumer
-	Server    *grpcx.Server
+	Consumers   []events.Consumer
+	Server      *grpcx.Server
+	AdminServer *ginx.Server
 }

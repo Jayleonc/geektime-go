@@ -15,8 +15,13 @@ import (
 )
 
 var thirdPartySet = wire.NewSet(
-	ioc.InitDB,
+	ioc.InitSrcDB,
+	ioc.InitDstDB,
+	ioc.InitDoubleWritePool,
+	ioc.InitBizDB,
 	ioc.InitLogger,
+	ioc.InitKafka,
+	ioc.NewSyncProducer,
 	ioc.InitRedis,
 )
 
@@ -31,9 +36,13 @@ func InitApp() *App {
 	wire.Build(thirdPartySet,
 		interactiveSvcSet,
 		grpc.NewInteractiveServiceServer,
-		ioc.InitKafka,
-		ioc.RegisterConsumers,
+
+		ioc.InitConsumers,
 		ioc.NewGrpcxServer,
+		ioc.InitInteractiveProducer,
+		ioc.InitFixerConsumer,
+		ioc.InitGinxServer,
+
 		events.NewInteractiveReadEventConsumer,
 		prometheus.NewInteractiveReadEventConsumerWithMetrics,
 		wire.Struct(new(App), "*"),

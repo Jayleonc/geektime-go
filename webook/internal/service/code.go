@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
+	"github.com/jayleonc/geektime-go/webook/internal/web/middleware"
 	"math/rand"
 )
 
@@ -35,7 +36,11 @@ func (svc *codeService) Send(ctx context.Context, biz, phone string) error {
 		return err
 	}
 	const codeTplId = "1877556"
-	return svc.sms.Send(ctx, codeTplId, []string{code}, phone) // 将 code 发送出去
+	token, err := middleware.GenerateToken(codeTplId)
+	if err != nil {
+		return err
+	}
+	return svc.sms.Send(ctx, token, []string{code}, phone) // 将 code 发送出去
 }
 
 func (svc *codeService) Verify(ctx context.Context, biz, phone, inputCode string) (bool, error) {

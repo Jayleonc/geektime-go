@@ -47,6 +47,11 @@ func runApp() {
 		}
 	}
 
+	go func() {
+		err1 := app.AdminServer.Start()
+		panic(err1)
+	}()
+
 	fmt.Println("intr grpc start...")
 	if err := app.Server.Serve(); err != nil {
 		panic(err)

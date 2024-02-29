@@ -21,8 +21,11 @@ import (
 // Injectors from wire.go:
 
 func InitApp() *App {
+	srcDB := ioc.InitSrcDB()
+	dstDB := ioc.InitDstDB()
 	logger := ioc.InitLogger()
-	db := ioc.InitDB(logger)
+	doubleWritePool := ioc.InitDoubleWritePool(srcDB, dstDB, logger)
+	db := ioc.InitBizDB(doubleWritePool)
 	interactiveDAO := dao.NewGORMInteractiveDAO(db)
 	cmdable := ioc.InitRedis()
 	interactiveCache := cache.NewInteractiveRedisCache(cmdable)
@@ -30,19 +33,24 @@ func InitApp() *App {
 	client := ioc.InitKafka()
 	interactiveReadEventConsumer := events.NewInteractiveReadEventConsumer(interactiveRepository, client)
 	interactiveReadEventConsumerWithMetrics := prometheus.NewInteractiveReadEventConsumerWithMetrics(interactiveReadEventConsumer)
-	v := ioc.RegisterConsumers(interactiveReadEventConsumerWithMetrics)
+	consumer := ioc.InitFixerConsumer(client, logger, srcDB, dstDB)
+	v := ioc.InitConsumers(interactiveReadEventConsumerWithMetrics, consumer)
 	interactiveService := service.NewInteractiveService(interactiveRepository)
 	interactiveServiceServer := grpc.NewInteractiveServiceServer(interactiveService)
 	server := ioc.NewGrpcxServer(interactiveServiceServer)
+	syncProducer := ioc.NewSyncProducer(client)
+	producer := ioc.InitInteractiveProducer(syncProducer)
+	ginxServer := ioc.InitGinxServer(logger, srcDB, dstDB, doubleWritePool, producer)
 	app := &App{
-		Consumers: v,
-		Server:    server,
+		Consumers:   v,
+		Server:      server,
+		AdminServer: ginxServer,
 	}
 	return app
 }
 
 // wire.go:
 
-var thirdPartySet = wire.NewSet(ioc.InitDB, ioc.InitLogger, ioc.InitRedis)
+var thirdPartySet = wire.NewSet(ioc.InitSrcDB, ioc.InitDstDB, ioc.InitDoubleWritePool, ioc.InitBizDB, ioc.InitLogger, ioc.InitKafka, ioc.NewSyncProducer, ioc.InitRedis)
 
 var interactiveSvcSet = wire.NewSet(dao.NewGORMInteractiveDAO, cache.NewInteractiveRedisCache, repository.NewCachedInteractiveRepository, service.NewInteractiveService)

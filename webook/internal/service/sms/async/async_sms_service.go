@@ -9,6 +9,7 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms/auth"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	"sync"
 	"time"
@@ -29,7 +30,13 @@ func NewSmsService(svc sms.Service, repo repository.AsyncTaskRepository, l logge
 }
 
 func (s *SmsService) Send(ctx context.Context, tplId string, args []string, numbers ...string) error {
-	if s.needAsync() {
+	// 安全地检查是否跳过异步检查，假设默认不跳过
+	skipAsyncCheck := false
+	if value, ok := ctx.Value("skipAsyncCheck").(bool); ok {
+		skipAsyncCheck = value
+	}
+
+	if !skipAsyncCheck && s.needAsync() {
 		Sms := async.Sms{
 			TplId:   tplId,
 			Args:    args,
@@ -48,8 +55,6 @@ func (s *SmsService) Send(ctx context.Context, tplId string, args []string, numb
 	// 记录开始时间
 	startTime := time.Now()
 
-	// 执行同步发送逻辑
-	fmt.Println("同步发送短信")
 	err := s.svc.Send(ctx, tplId, args, numbers...)
 
 	// 计算响应时间并更新 responseTimes
@@ -70,6 +75,7 @@ func (s *SmsService) Execute() error {
 	if err != nil {
 		return err
 	}
+
 	// 没有任务需要处理
 	if len(tasks) == 0 {
 		return nil
@@ -94,34 +100,40 @@ func (s *SmsService) Execute() error {
 func (s *SmsService) handleTask(ctx context.Context, task async.Task, sms async.Sms) {
 	var err error
 	isSuccess := false // 默认为失败
-	for attempt := 0; attempt < task.RetryCount; attempt++ {
+
+	// 在这里不修改task.RetryCount
+	// 记录尝试的次数
+	attemptsMade := 0
+	for attemptsMade < task.RetryCount {
 		err = s.AsyncSend(sms)
 		if err == nil {
 			isSuccess = true // 成功发送
 			break
 		}
-		// 重试之前等待一段时间
-		time.Sleep(s.calculateBackoff(attempt))
+		// 重试之前等待一段时间，重试间隔
+		time.Sleep(s.calculateBackoff(attemptsMade))
+		attemptsMade++
 	}
 
 	if err != nil {
 		task.ErrorMessage = err.Error()
 	}
 
-	// 无论成功还是失败，都需要更新任务状态
-	s.updateTaskStatus(ctx, task, isSuccess)
+	// 更新任务状态
+	s.updateTaskStatus(ctx, task, isSuccess, attemptsMade)
 }
 
-func (s *SmsService) updateTaskStatus(ctx context.Context, task async.Task, isSuccess bool) {
+// 注意，我们添加了一个新参数来正确反映尝试次数
+func (s *SmsService) updateTaskStatus(ctx context.Context, task async.Task, isSuccess bool, attemptsMade int) {
 	if isSuccess {
 		task.Status = int(dao.StatusSuccess)
-		task.RetryCount = 0 // 成功后重试次数设置为0
+		// 可以记录实际的尝试次数，而不是修改RetryCount
 	} else {
 		task.Status = int(dao.StatusFailed)
-		task.RetryCount-- // 失败后减少一次重试次数
+		// 处理失败逻辑，但不修改RetryCount
 	}
 
-	// 假设repo.UpdateTask现在能够处理状态和错误信息的更新
+	// 假设repo.UpdateTask能够处理状态更新
 	if err := s.repo.UpdateTask(ctx, task); err != nil {
 		s.l.Error("更新任务状态失败", logger.Error(err), logger.String("id", task.Id), logger.String("status", string(rune(task.Status))))
 	}
@@ -141,6 +153,8 @@ func (s *SmsService) AsyncSend(as async.Sms) error {
 
 	// 执行异步发送逻辑
 	fmt.Println("异步发送短信")
+	ctx = auth.WithSkipAuth(ctx, true)
+	ctx = WithSkipAsyncCheck(ctx, true)
 	err := s.svc.Send(ctx, as.TplId, as.Args, as.Numbers...)
 
 	// 计算响应时间并更新 responseTimes
@@ -224,4 +238,9 @@ func (s *SmsService) calculateErrorRate() float64 {
 		}
 	}
 	return float64(errorCount) / float64(len(s.errors))
+}
+
+// WithSkipAsyncCheck 创建一个新的context，包含一个标记以跳过异步检查。
+func WithSkipAsyncCheck(ctx context.Context, skip bool) context.Context {
+	return context.WithValue(ctx, "skipAsyncCheck", skip)
 }

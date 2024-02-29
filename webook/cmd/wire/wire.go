@@ -14,7 +14,6 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
-	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/async"
 	"github.com/jayleonc/geektime-go/webook/internal/web"
 	ijwt "github.com/jayleonc/geektime-go/webook/internal/web/jwt"
@@ -42,6 +41,7 @@ func InitWebServer() *App {
 		// 注册 Task 的方法
 		ioc.InitTask,
 		repository.NewAsyncTaskRepository,
+
 		// DAO 部分
 		dao.NewUserDAO,
 		dao.NewTaskDAO,
@@ -93,7 +93,6 @@ func InitWebServer() *App {
 }
 
 var smsServiceSet = wire.NewSet(
-	ioc.InitAsyncSMSService,
-	// 使用 wire.Bind 来绑定接口和实现
-	wire.Bind(new(sms.Service), new(*async.SmsService)),
+	async.NewSmsService,
+	ioc.InitSMSServiceV1,
 )

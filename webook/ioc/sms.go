@@ -4,6 +4,7 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/async"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms/auth"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/localsms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/prometheus"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/tencent"
@@ -28,7 +29,7 @@ func InitSMSService() sms.Service {
 	return decorator
 }
 
-func InitAsyncSMSService(repo repository.AsyncTaskRepository, l logger.Logger) *async.SmsService {
+func InitAsyncSMSService(repo repository.AsyncTaskRepository, l logger.Logger) sms.Service {
 	// 首先，初始化装饰过的SMS服务
 	decoratedService := InitSMSService()
 
@@ -36,6 +37,32 @@ func InitAsyncSMSService(repo repository.AsyncTaskRepository, l logger.Logger) *
 	asyncSmsService := async.NewSmsService(decoratedService, repo, l)
 
 	return asyncSmsService
+}
+
+func InitSMSServiceV1(repo repository.AsyncTaskRepository, l logger.Logger) sms.Service {
+	// 步骤 1: 初始化基础SMS服务
+	baseService := localsms.NewService()
+
+	// 步骤 2: 应用Prometheus监控装饰器（如果有）
+	opts := prometheus2.SummaryOpts{
+		Namespace: "geektime_jayleonc",
+		Subsystem: "webook",
+		Name:      "sms_req",
+		Help:      "统计 sms 请求响应时间",
+	}
+	prometheusService := prometheus.NewSMSDecorator(baseService, opts)
+
+	// 步骤 3: 初始化异步SMS服务
+	asyncService := async.NewSmsService(prometheusService, repo, l)
+
+	//// 步骤 4: 创建异步服务适配器
+	//asyncServiceAdapter := &async.ServiceAdapter{AsyncService: asyncService}
+
+	//// 步骤 5: 应用JWT鉴权装饰器（如果需要）
+	jwtAuthService := auth.NewSMSService(asyncService)
+
+	// 最终返回装饰过的服务
+	return jwtAuthService
 }
 
 func initTencentSMSService() sms.Service {

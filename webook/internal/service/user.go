@@ -22,10 +22,16 @@ type UserService interface {
 	FindOrCreate(ctx context.Context, phone string) (domain.User, error)
 	FindOrCreateByWechat(ctx context.Context, wechatInfo domain.WechatInfo) (domain.User, error)
 	Update(ctx context.Context, u domain.User) error
+	Send(ctx context.Context, biz, phone string) error
 }
 
 type userService struct {
 	repo repository.UserRepository
+}
+
+func (u *userService) Send(ctx context.Context, biz, phone string) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (u *userService) Update(ctx context.Context, user domain.User) error {

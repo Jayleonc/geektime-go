@@ -1,8 +1,9 @@
 package ioc
 
 import (
-	"github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
+	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/pkg/gormx"
+	"github.com/jayleonc/geektime-go/webook/pkg/gormx/connpool"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/viper"
@@ -12,29 +13,48 @@ import (
 	"gorm.io/plugin/prometheus"
 )
 
-func InitDB(l logger.Logger) *gorm.DB {
-	type Config struct {
-		DSN string `yaml:"dsn"`
-	}
+type SrcDB *gorm.DB
+type DstDB *gorm.DB
 
-	var c Config
-	err := viper.UnmarshalKey("db", &c)
+func InitSrcDB() SrcDB {
+	return initDB("src")
+}
+
+func InitDstDB() DstDB {
+	return initDB("dst")
+}
+
+func InitDoubleWritePool(src SrcDB, dst DstDB, l logger.Logger) *connpool.DoubleWritePool {
+	return connpool.NewDoubleWritePool(src, dst, l)
+}
+
+func InitBizDB(p *connpool.DoubleWritePool) *gorm.DB {
+	doubleWrite, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: p,
+	}))
 	if err != nil {
 		panic(err)
 	}
+	return doubleWrite
+}
 
-	db, err := gorm.Open(mysql.Open(c.DSN), &gorm.Config{
-		//Logger: gormlogger.New(log.New(os.Stdout, "\n", log.LstdFlags), gormlogger.Config{
-		//	SlowThreshold: time.Second,
-		//	Colorful:      true,
-		//	LogLevel:      gormlogger.Info,
-		//}),
-	})
+func initDB(key string) *gorm.DB {
+	type Config struct {
+		DSN string `yaml:"dsn"`
+	}
+	var cfg Config = Config{
+		DSN: "root:jayleonc@tcp(localhost:3306)/webook",
+	}
+	err := viper.UnmarshalKey("db."+key, &cfg)
+	if err != nil {
+		panic(err)
+	}
+	db, err := gorm.Open(mysql.Open(cfg.DSN), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
 	err = db.Use(prometheus.New(prometheus.Config{
-		DBName:          "webook",
+		DBName:          "webook" + key,
 		RefreshInterval: 15,
 		MetricsCollector: []prometheus.MetricsCollector{
 			&prometheus.MySQL{
@@ -45,13 +65,13 @@ func InitDB(l logger.Logger) *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-	before := gormx.NewCallbacks(prometheus2.SummaryOpts{
-		Namespace: "geektime_jayleonc",
+	cb := gormx.NewCallbacks(prometheus2.SummaryOpts{
+		Namespace: "geektime_daming",
 		Subsystem: "webook",
-		Name:      "gorm_db",
+		Name:      "gorm_db_" + key,
 		Help:      "统计 GORM 的数据库查询",
 		ConstLabels: map[string]string{
-			"instance_id": "gorm_db_instance",
+			"instance_id": "my_instance",
 		},
 		Objectives: map[float64]float64{
 			0.5:   0.01,
@@ -61,21 +81,26 @@ func InitDB(l logger.Logger) *gorm.DB {
 			0.999: 0.0001,
 		},
 	})
-	err = db.Use(before)
+
+	err = db.Use(cb)
 	if err != nil {
 		panic(err)
 	}
 
-	db.Use(tracing.NewPlugin(tracing.WithoutMetrics(), tracing.WithDBName("geektime")))
-	err = dao.InitTables(db)
+	err = db.Use(tracing.NewPlugin(tracing.WithoutMetrics(),
+		tracing.WithDBName("webook_"+key)))
 	if err != nil {
-		return nil
+		panic(err)
+	}
+	err = dao2.InitTables(db)
+	if err != nil {
+		panic(err)
 	}
 	return db
 }
 
-type gormLoggerFunc func(msg string, fields ...logger.Field)
+type goormLoggerFunc func(msg string, fields ...logger.Field)
 
-func (g gormLoggerFunc) Printf(s string, i ...interface{}) {
+func (g goormLoggerFunc) Printf(s string, i ...interface{}) {
 	g(s, logger.Field{Key: "args", Val: i})
 }

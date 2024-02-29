@@ -49,23 +49,5 @@ func (m *LoginJWTMiddlewareBuilder) CheckLogin() gin.HandlerFunc {
 		}
 
 		ctx.Set("user", uc)
-		//if uc.UserAgent != ctx.GetHeader("User-Agent") {
-		//	// todo 监控告警时，需要记录这里的发生
-		//	// 进来这里的，大概率是攻击者
-		//	fmt.Println("User-Agent 出错啦！")
-		//	ctx.AbortWithStatus(http.StatusUnauthorized)
-		//	return
-		//}
-
-		//expireTime := uc.ExpiresAt
-		//if expireTime.Sub(time.Now()) < time.Minute*15 {
-		//	uc.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute))
-		//	tokenStr, err = token.SignedString(web.JWTKey)
-		//	ctx.Header("x-jwt-token", tokenStr)
-		//	fmt.Println("-------- token 刷新啦 ------")
-		//	if err != nil {
-		//		fmt.Println(err)
-		//	}
-		//}
 	}
 }

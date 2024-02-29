@@ -18,7 +18,6 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/repository/cache"
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
-	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/async"
 	"github.com/jayleonc/geektime-go/webook/internal/web"
 	"github.com/jayleonc/geektime-go/webook/internal/web/jwt"
@@ -41,7 +40,7 @@ func InitWebServer() *App {
 	codeRepository := repository.NewCodeRepository(codeCache)
 	taskDAO := dao.NewTaskDAO(db)
 	asyncTaskRepository := repository.NewAsyncTaskRepository(taskDAO)
-	smsService := ioc.InitAsyncSMSService(asyncTaskRepository, logger)
+	smsService := ioc.InitSMSServiceV1(asyncTaskRepository, logger)
 	codeService := service.NewCodeService(codeRepository, smsService)
 	userHandler := web.NewUserHandler(userService, codeService, handler)
 	wechatService := ioc.InitWeChatService()
@@ -69,8 +68,9 @@ func InitWebServer() *App {
 	rlockClient := ioc.InitRLockClient(cmdable)
 	rankingJob := ioc.InitRankingJob(rankingService, logger, rlockClient)
 	cron := ioc.InitJobs(logger, rankingJob)
+	asyncSmsService := async.NewSmsService(smsService, asyncTaskRepository, logger)
 	demo := service.NewDemo()
-	scheduler := ioc.InitTask(smsService, demo)
+	scheduler := ioc.InitTask(asyncSmsService, demo)
 	app := &App{
 		Web:       engine,
 		Consumers: v2,
@@ -86,4 +86,4 @@ var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO, cache2.NewIntera
 
 var rankingSvcSet = wire.NewSet(cache.NewRankingRedisCache, repository.NewCachedRankingRepository, service.NewBatchRankingService)
 
-var smsServiceSet = wire.NewSet(ioc.InitAsyncSMSService, wire.Bind(new(sms.Service), new(*async.SmsService)))
+var smsServiceSet = wire.NewSet(async.NewSmsService, ioc.InitSMSServiceV1)
