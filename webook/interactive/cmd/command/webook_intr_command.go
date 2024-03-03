@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func NewWebookCommand() *cobra.Command {
+func NewIntrCommand() *cobra.Command {
 	w := &cobra.Command{
 		Use:   "intr",
 		Short: "webook intr server start.",

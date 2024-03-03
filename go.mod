@@ -9,6 +9,7 @@ require (
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/dlclark/regexp2 v1.10.0
 	github.com/ecodeclub/ekit v0.0.8-0.20240122113210-194ef90fbedf
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
@@ -16,6 +17,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.3.1
 	github.com/google/wire v0.5.0
+	github.com/gotomicro/redis-lock v0.0.3
 	github.com/lithammer/shortuuid/v4 v4.0.0
 	github.com/prometheus/client_golang v1.18.0
 	github.com/redis/go-redis/v9 v9.3.0
@@ -25,6 +27,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.781
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.781
+	go.etcd.io/etcd/client/v3 v3.5.12
 	go.mongodb.org/mongo-driver v1.13.1
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.47.0
 	go.opentelemetry.io/otel v1.22.0
@@ -33,7 +36,10 @@ require (
 	go.uber.org/mock v0.3.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.18.0
+	golang.org/x/net v0.20.0
 	golang.org/x/sync v0.4.0
+	google.golang.org/grpc v1.59.0
+	google.golang.org/protobuf v1.32.0
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/gorm v1.25.5
 	gorm.io/plugin/opentelemetry v0.1.4
@@ -59,7 +65,6 @@ require (
 	github.com/eapache/go-xerial-snappy v0.0.0-20230731223053-c322873962e3 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/fatih/color v1.14.1 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -79,7 +84,6 @@ require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
 	github.com/gorilla/sessions v1.2.1 // indirect
-	github.com/gotomicro/redis-lock v0.0.3 // indirect
 	github.com/hashicorp/consul/api v1.25.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -140,10 +144,9 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	go.etcd.io/etcd/api/v3 v3.5.9 // indirect
-	go.etcd.io/etcd/client/pkg/v3 v3.5.9 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.12 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.12 // indirect
 	go.etcd.io/etcd/client/v2 v2.305.9 // indirect
-	go.etcd.io/etcd/client/v3 v3.5.9 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel/metric v1.22.0 // indirect
 	go.opentelemetry.io/otel/trace v1.22.0 // indirect
@@ -151,7 +154,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
@@ -162,8 +164,6 @@ require (
 	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230913181813-007df8e322eb // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
-	google.golang.org/grpc v1.58.2 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -18,7 +18,7 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(command.NewWebookCommand())
+	rootCmd.AddCommand(command.NewIntrCommand())
 }
 
 func start() error {

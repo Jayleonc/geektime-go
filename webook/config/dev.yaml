@@ -9,9 +9,11 @@ kafka:
   addrs:
     - "localhost:9094"
 
+etcd:
+  addrs:
+    - "localhost:2379"
 
 grpc:
   client:
     intr:
-      addr: "localhost:8090"
-      threshold: 100
+      addr: "etcd:///service/interactive"

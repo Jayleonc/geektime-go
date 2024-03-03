@@ -8,8 +8,6 @@ package wire
 
 import (
 	"github.com/google/wire"
-	"github.com/jayleonc/geektime-go/webook/interactive/events"
-	"github.com/jayleonc/geektime-go/webook/interactive/events/prometheus"
 	repository2 "github.com/jayleonc/geektime-go/webook/interactive/repository"
 	cache2 "github.com/jayleonc/geektime-go/webook/interactive/repository/cache"
 	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
@@ -52,16 +50,11 @@ func InitWebServer() *App {
 	syncProducer := ioc.NewSyncProducer(client)
 	producer := ioc.NewKafkaProducerWithMetricsDecorator(syncProducer)
 	articleService := service.NewArticleService(articleRepository, producer)
-	interactiveDAO := dao2.NewGORMInteractiveDAO(db)
-	interactiveCache := cache2.NewInteractiveRedisCache(cmdable)
-	interactiveRepository := repository2.NewCachedInteractiveRepository(interactiveDAO, interactiveCache)
-	interactiveService := service2.NewInteractiveService(interactiveRepository)
-	interactiveServiceClient := ioc.NewIntrClient(interactiveService)
+	clientv3Client := ioc.InitEtcd()
+	interactiveServiceClient := ioc.NewIntrClientV1(clientv3Client)
 	articleHandler := web.NewArticleHandler(logger, articleService, interactiveServiceClient)
 	engine := ioc.InitWebServer(v, userHandler, oAuth2WechatHandler, articleHandler)
-	interactiveReadEventConsumer := events.NewInteractiveReadEventConsumer(interactiveRepository, client)
-	interactiveReadEventConsumerWithMetrics := prometheus.NewInteractiveReadEventConsumerWithMetrics(interactiveReadEventConsumer)
-	v2 := ioc.RegisterConsumers(interactiveReadEventConsumerWithMetrics)
+	v2 := ioc.RegisterConsumers()
 	rankingCache := cache.NewRankingRedisCache(cmdable)
 	rankingRepository := repository.NewCachedRankingRepository(rankingCache)
 	rankingService := service.NewBatchRankingService(interactiveServiceClient, articleService, rankingRepository)

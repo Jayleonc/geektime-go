@@ -4,8 +4,6 @@ package wire
 
 import (
 	"github.com/google/wire"
-	"github.com/jayleonc/geektime-go/webook/interactive/events"
-	"github.com/jayleonc/geektime-go/webook/interactive/events/prometheus"
 	repository2 "github.com/jayleonc/geektime-go/webook/interactive/repository"
 	cache2 "github.com/jayleonc/geektime-go/webook/interactive/repository/cache"
 	dao2 "github.com/jayleonc/geektime-go/webook/interactive/repository/dao"
@@ -34,6 +32,7 @@ func InitWebServer() *App {
 		// 第三方依赖
 		ioc.InitRedis, ioc.InitDB, ioc.InitLogger,
 		ioc.InitKafka, ioc.InitRLockClient,
+		ioc.InitEtcd,
 		ioc.RegisterConsumers,
 		ioc.NewSyncProducer,
 
@@ -52,12 +51,12 @@ func InitWebServer() *App {
 		cache.NewUserCache,
 		cache.NewArticleRedisCache,
 
-		events.NewInteractiveReadEventConsumer,
-		prometheus.NewInteractiveReadEventConsumerWithMetrics,
+		//events.NewInteractiveReadEventConsumer,
+		//prometheus.NewInteractiveReadEventConsumerWithMetrics,
 		//article.NewKafkaProducer,
 		ioc.NewKafkaProducerWithMetricsDecorator,
-		interactiveSvcSet,
-		ioc.NewIntrClient,
+		//interactiveSvcSet,
+		ioc.NewIntrClientV1,
 		rankingSvcSet,
 		ioc.InitJobs,
 		ioc.InitRankingJob,

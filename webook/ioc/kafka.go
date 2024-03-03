@@ -2,7 +2,6 @@ package ioc
 
 import (
 	"github.com/IBM/sarama"
-	prometheus2 "github.com/jayleonc/geektime-go/webook/interactive/events/prometheus"
 	"github.com/jayleonc/geektime-go/webook/internal/events"
 	"github.com/jayleonc/geektime-go/webook/internal/events/article"
 	"github.com/jayleonc/geektime-go/webook/internal/events/article/prometheus"
@@ -36,8 +35,8 @@ func NewSyncProducer(client sarama.Client) sarama.SyncProducer {
 }
 
 // RegisterConsumers 注册 Consumer
-func RegisterConsumers(m *prometheus2.InteractiveReadEventConsumerWithMetrics) []events.Consumer {
-	return []events.Consumer{m}
+func RegisterConsumers() []events.Consumer {
+	return []events.Consumer{}
 }
 
 func NewKafkaProducerWithMetricsDecorator(syncProducer sarama.SyncProducer) article.Producer {
