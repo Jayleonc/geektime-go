@@ -88,10 +88,10 @@ func (b *BatchRankingService) topN(ctx context.Context) ([]domain.Article, error
 		intrResp, err := b.interSvc.GetByIds(ctx, &intrv1.GetByIdsRequest{
 			Biz: "article", Ids: ids,
 		})
-		intrMap := intrResp.Intrs
 		if err != nil {
 			return nil, err
 		}
+		intrMap := intrResp.Intrs
 		for _, art := range arts {
 			intr, ok := intrMap[art.Id]
 			if !ok || intr == nil {

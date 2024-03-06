@@ -106,6 +106,7 @@ func (s *EtcdTestSuite) TestServer() {
 		t.Log(err)
 	}
 	server.GracefulStop() // grpc 优雅退出
+	s.cli.Close()
 }
 
 func TestEtcd(t *testing.T) {

@@ -25,10 +25,12 @@ func NewIntrClientV1(client *etcdv3.Client) intrv1.InteractiveServiceClient {
 		panic(err)
 	}
 
+	// 创建一个服务解析器，该解析器使用etcd客户端来发现服务
 	resolver, err := resolver2.NewBuilder(client)
 	if err != nil {
 		panic(err)
 	}
+	// 服务发现: 使用etcd和自定义服务解析器实现服务发现，允许客户端动态地解析 intr 服务的地址
 	opts := []grpc.DialOption{grpc.WithResolvers(resolver)}
 	if !cfg.Secure {
 		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))

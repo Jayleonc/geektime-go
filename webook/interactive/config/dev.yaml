@@ -3,7 +3,10 @@ redis:
   password: "jayleonc"
 
 db:
-  dsn: "root:jayleonc@tcp(localhost:3306)/webook"
+  src:
+    dsn: "root:jayleonc@tcp(localhost:3306)/webook"
+  dst:
+    dsn: "root:jayleonc@tcp(localhost:3306)/webook_intr"
 
 kafka:
   addrs:

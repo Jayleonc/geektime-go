@@ -93,5 +93,5 @@ func InitWebServer() *App {
 
 var smsServiceSet = wire.NewSet(
 	async.NewSmsService,
-	ioc.InitSMSServiceV1,
+	ioc.InitUserSMSService,
 )

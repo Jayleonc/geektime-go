@@ -73,6 +73,7 @@ func runApp() {
 
 func initPrometheus() {
 	go func() {
+		fmt.Println("prometheus 启动成功")
 		http.Handle("/metrics", promhttp.Handler())
 		http.ListenAndServe(":8081", nil)
 	}()

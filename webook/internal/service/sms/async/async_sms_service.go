@@ -11,6 +11,8 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms/auth"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
+	"math/rand"
+	"sort"
 	"sync"
 	"time"
 )
@@ -23,20 +25,41 @@ type SmsService struct {
 	responseTimes []time.Duration // 响应时间记录
 	errors        []bool          // 错误记录
 	mu            sync.Mutex      // 保护 responseTimes 和 errors
+
+	asyncMode      bool
+	asyncStartTime time.Time
 }
 
 func NewSmsService(svc sms.Service, repo repository.AsyncTaskRepository, l logger.Logger) *SmsService {
-	return &SmsService{svc: svc, repo: repo, l: l}
+	s := &SmsService{svc: svc, repo: repo, l: l}
+	//startPerformanceMonitoring(s)
+	return s
 }
 
 func (s *SmsService) Send(ctx context.Context, tplId string, args []string, numbers ...string) error {
-	// 安全地检查是否跳过异步检查，假设默认不跳过
-	skipAsyncCheck := false
-	if value, ok := ctx.Value("skipAsyncCheck").(bool); ok {
-		skipAsyncCheck = value
+	// 检查是否跳过异步检查，如果设置了跳过异步，则直接同步发送，只在转异步的 AsyncSend 设置了，避免洋葱导致的循环异步
+	if skipAsyncCheck, _ := ctx.Value("skipAsyncCheck").(bool); skipAsyncCheck {
+		return s.directSend(ctx, tplId, args, numbers...)
 	}
 
-	if !skipAsyncCheck && s.needAsync() {
+	// 检查是否触发了限流
+	asyncModeCheck := false
+	if value, ok := ctx.Value("asyncMode").(bool); ok {
+		// 触发限流，asyncModeCheck = true
+		asyncModeCheck = value
+	}
+
+	//var mu sync.RWMutex
+	//mu.RLock() // 在读取 asyncMode 前加锁
+	//asyncModeActive := s.asyncMode
+	//mu.RUnlock() // 读取完毕后立即解锁
+
+	// 使用 needAsync，即时性强，能快速切换到异步，减少延迟和失误率
+	needAsync := s.needAsync() || asyncModeCheck
+	// 使用 asyncMode，避免每次执行发送操作都执行 needAsync，减少 CPU 的使用和性能开销
+	//needAsync := asyncModeActive || asyncModeCheck
+
+	if needAsync {
 		Sms := async.Sms{
 			TplId:   tplId,
 			Args:    args,
@@ -52,15 +75,22 @@ func (s *SmsService) Send(ctx context.Context, tplId string, args []string, numb
 		storeErr := s.repo.StoreTask(ctx, task)
 		return storeErr
 	}
+
+	return s.directSend(ctx, tplId, args, numbers...)
+}
+
+// directSend 封装了直接发送短信的逻辑，以避免重复代码
+func (s *SmsService) directSend(ctx context.Context, tplId string, args []string, numbers ...string) error {
 	// 记录开始时间
 	startTime := time.Now()
 
+	// 执行发送操作
 	err := s.svc.Send(ctx, tplId, args, numbers...)
 
-	// 计算响应时间并更新 responseTimes
+	// 计算响应时间并更新
 	s.updateResponseTimes(time.Since(startTime))
 
-	// 更新 errors
+	// 更新错误状态
 	s.updateErrors(err != nil)
 
 	return err
@@ -144,6 +174,46 @@ func (s *SmsService) calculateBackoff(attempt int) time.Duration {
 	return time.Second * time.Duration(attempt+1)
 }
 
+func (s *SmsService) checkAndSwitchModes() {
+	var mu sync.RWMutex
+	mu.Lock()
+	defer mu.Unlock()
+	// 检查是否应该进入异步模式
+	if !s.asyncMode && s.needAsync() {
+		s.asyncMode = true
+		s.asyncStartTime = time.Now()
+		fmt.Println("定时任务，转为异步发送")
+		return
+	}
+
+	// 检查是否应该退出异步模式
+	if s.asyncMode {
+		// 检查是否已经过了N分钟
+		if time.Since(s.asyncStartTime) > time.Minute*5 {
+			// 逐步增加同步处理的请求比例
+			// 可以通过控制一个随机数来决定每个请求是同步还是异步处理
+			if rand.Float64() < 0.01 { // 保留1%的流量进行同步发送
+				s.asyncMode = false
+				fmt.Println("定时任务，转为同步发送")
+			}
+			// 继续监控响应时间和错误率
+			if !s.needAsync() {
+				s.asyncMode = false
+				fmt.Println("定时任务，转为同步发送")
+			}
+		}
+	}
+}
+
+func startPerformanceMonitoring(s *SmsService) {
+	ticker := time.NewTicker(1 * time.Minute)
+	go func() {
+		for range ticker.C {
+			s.checkAndSwitchModes()
+		}
+	}()
+}
+
 func (s *SmsService) AsyncSend(as async.Sms) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
@@ -170,8 +240,8 @@ func (s *SmsService) updateResponseTimes(duration time.Duration) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.responseTimes = append(s.responseTimes, duration)
-	// 限制记录数量，例如最近100条
-	if len(s.responseTimes) > 100 {
+	// 限制记录数量，例如最近1000条
+	if len(s.responseTimes) > 1000 {
 		s.responseTimes = s.responseTimes[1:]
 	}
 }
@@ -186,10 +256,8 @@ func (s *SmsService) updateErrors(errOccurred bool) {
 	}
 }
 
-// 提前引导你们，开始思考系统容错问题
-// 你们面试装逼，赢得竞争优势就靠这一类的东西
+// needAsync
 func (s *SmsService) needAsync() bool {
-	// 这边就是你要设计的，各种判定要不要触发异步的方案
 	// 1. 基于响应时间的，平均响应时间
 	// 1.1 使用绝对阈值，比如说直接发送的时候，（连续一段时间，或者连续N个请求）响应时间超过了 500ms，然后后续请求转异步
 	// 1.2 变化趋势，比如说当前一秒钟内的所有请求的响应时间比上一秒钟增长了 X%，就转异步
@@ -202,15 +270,21 @@ func (s *SmsService) needAsync() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// 分析响应时间
+	// 1.检测到响应时间的突然增加，直接转为异步
+	if s.checkResponseTimeIncrease() {
+		return true
+	}
+
+	// 2.使用动态阈值，分析响应时间
+	threshold := s.calculateResponseTimeThreshold()
 	if len(s.responseTimes) > 0 {
 		avgResponseTime := s.calculateAverageResponseTime()
-		if avgResponseTime > 500*time.Millisecond { // 使用绝对阈值
+		if avgResponseTime > threshold {
 			return true
 		}
 	}
 
-	// 分析错误率
+	// 3.分析错误率
 	if len(s.errors) > 0 {
 		errorRate := s.calculateErrorRate()
 		if errorRate > 0.1 { // 假设10%的错误率是不可接受的
@@ -238,6 +312,58 @@ func (s *SmsService) calculateErrorRate() float64 {
 		}
 	}
 	return float64(errorCount) / float64(len(s.errors))
+}
+
+// 计算动态阈值
+func (s *SmsService) calculateResponseTimeThreshold() time.Duration {
+	// 计算过去所有响应时间的95%分位数作为阈值
+	// 实际实现时需要根据响应时间分布来计算
+	return percentile95(s.responseTimes)
+}
+
+// 95%分位数意味着95%的数据点都位于该值以下。计算分位数通常需要对数据进行排序
+func percentile95(responseTimes []time.Duration) time.Duration {
+	length := len(responseTimes)
+	if length == 0 {
+		return 0
+	}
+	// 对响应时间进行排序
+	sort.Slice(responseTimes, func(i, j int) bool {
+		return responseTimes[i] < responseTimes[j]
+	})
+	// 计算95%分位数的索引
+	index := int(0.95 * float64(length-1))
+	return responseTimes[index]
+}
+
+// 检测响应时间的突然增加
+func (s *SmsService) checkResponseTimeIncrease() bool {
+	// 比较最后三次响应时间的增长率
+	// 实际实现时需要根据具体需求调整逻辑
+	return checkIncreaseRate(s.responseTimes)
+}
+
+// 检查最后三次请求的平均响应时间是否比前三次有明显增加
+func checkIncreaseRate(responseTimes []time.Duration) bool {
+	length := len(responseTimes)
+	if length < 6 { // 需要至少6个数据点来比较
+		return false
+	}
+	// 分别计算最近三次和前三次响应时间的平均值
+	var sumRecent, sumPrevious time.Duration
+	for i := length - 3; i < length; i++ {
+		sumRecent += responseTimes[i]
+	}
+	for i := length - 6; i < length-3; i++ {
+		sumPrevious += responseTimes[i]
+	}
+	avgRecent := sumRecent / 3
+	avgPrevious := sumPrevious / 3
+
+	// 检查最近三次平均响应时间是否有明显增加
+	// 这里检查是否至少增加了40%
+	increaseRate := float64(avgRecent-avgPrevious) / float64(avgPrevious)
+	return increaseRate > 0.4
 }
 
 // WithSkipAsyncCheck 创建一个新的context，包含一个标记以跳过异步检查。

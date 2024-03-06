@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/jayleonc/geektime-go/webook/internal/repository"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
-	"github.com/jayleonc/geektime-go/webook/internal/web/middleware"
+	"github.com/jayleonc/geektime-go/webook/internal/service/sms/middleware"
 	"math/rand"
 )
 

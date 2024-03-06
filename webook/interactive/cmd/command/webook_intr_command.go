@@ -36,7 +36,7 @@ func initConfig() {
 func runApp() {
 	initConfig()
 	initLogger()
-	initPrometheus()
+	//initPrometheus()
 
 	app := wire.InitApp()
 	// 启动 Kafka 消费者

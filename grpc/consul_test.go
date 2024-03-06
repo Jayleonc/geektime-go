@@ -95,6 +95,7 @@ func registerServiceWithConsul() error {
 	}
 	return nil
 }
+
 func discoverServiceFromConsul(serviceName string) (string, error) {
 	config := api.DefaultConfig()
 	config.Address = netx.GetOutboundIP() + ":" + consulPort

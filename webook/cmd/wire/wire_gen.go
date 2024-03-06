@@ -38,7 +38,7 @@ func InitWebServer() *App {
 	codeRepository := repository.NewCodeRepository(codeCache)
 	taskDAO := dao.NewTaskDAO(db)
 	asyncTaskRepository := repository.NewAsyncTaskRepository(taskDAO)
-	smsService := ioc.InitSMSServiceV1(asyncTaskRepository, logger)
+	smsService := ioc.InitUserSMSService(asyncTaskRepository, cmdable, logger)
 	codeService := service.NewCodeService(codeRepository, smsService)
 	userHandler := web.NewUserHandler(userService, codeService, handler)
 	wechatService := ioc.InitWeChatService()
@@ -79,4 +79,4 @@ var interactiveSvcSet = wire.NewSet(dao2.NewGORMInteractiveDAO, cache2.NewIntera
 
 var rankingSvcSet = wire.NewSet(cache.NewRankingRedisCache, repository.NewCachedRankingRepository, service.NewBatchRankingService)
 
-var smsServiceSet = wire.NewSet(async.NewSmsService, ioc.InitSMSServiceV1)
+var smsServiceSet = wire.NewSet(async.NewSmsService, ioc.InitUserSMSService)

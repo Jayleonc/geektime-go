@@ -20,7 +20,7 @@ type Server struct {
 	L        logger.Logger
 
 	client  *etcdv3.Client
-	kCancel func()
+	kCancel func() //  一个取消函数，用于停止维持etcd租约的KeepAlive过程
 }
 
 func (s *Server) Serve() error {
@@ -29,7 +29,10 @@ func (s *Server) Serve() error {
 	if err != nil {
 		return err
 	}
-	s.register()
+	err = s.register() // 在etcd中注册服务
+	if err != nil {
+		return err
+	}
 	return s.Server.Serve(l)
 }
 

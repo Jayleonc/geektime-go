@@ -8,10 +8,13 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/web/middleware"
 	"github.com/jayleonc/geektime-go/webook/pkg/ginx"
 	"github.com/jayleonc/geektime-go/webook/pkg/ginx/middleware/prometheus"
+	"github.com/jayleonc/geektime-go/webook/pkg/ginx/middleware/ratelimit"
+	"github.com/jayleonc/geektime-go/webook/pkg/limiter"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	prometheus2 "github.com/prometheus/client_golang/prometheus"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"time"
 )
 
 func InitWebServer(mdls []gin.HandlerFunc, userHdl *web.UserHandler, wechatHdl *web.OAuth2WechatHandler, artHdl *web.ArticleHandler) *gin.Engine {
@@ -45,7 +48,7 @@ func InitGinMiddlewares(redisClient redis.Cmdable, jwtHdl ijwt.Handler, l logger
 			},
 			ExposeHeaders: []string{"x-jwt-token", "x-refresh-token"},
 		}),
-		//ratelimit.NewBuilder(limiter.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Build(),
+		ratelimit.NewBuilder(limiter.NewRedisSlidingWindowLimiter(redisClient, time.Second, 1000)).Build(),
 		//middleware.NewLogMiddlewareBuilder(func(ctx context.Context, al middleware.AccessLog) {
 		//	l.Debug("", logger.Field{Key: "req", Val: al})
 		//}).AllowRespBody().AllowReqBody().Build(),
