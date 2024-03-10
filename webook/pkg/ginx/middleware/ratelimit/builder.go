@@ -37,6 +37,7 @@ func (b *Builder) Build() gin.HandlerFunc {
 			ctx.AbortWithStatus(http.StatusInternalServerError)
 			// 激进做法：虽然 Redis 崩溃了，但是这个时候还是要尽量服务正常的用户，所以不限流
 			// ctx.Next()
+			// 或者转为单机限流
 			return
 		}
 		if limited {

@@ -9,7 +9,6 @@ import (
 	"github.com/jayleonc/geektime-go/webook/internal/repository/dao"
 	"github.com/jayleonc/geektime-go/webook/internal/service"
 	"github.com/jayleonc/geektime-go/webook/internal/service/sms"
-	"github.com/jayleonc/geektime-go/webook/internal/service/sms/auth"
 	"github.com/jayleonc/geektime-go/webook/pkg/logger"
 	"math/rand"
 	"sort"
@@ -38,13 +37,13 @@ func NewSmsService(svc sms.Service, repo repository.AsyncTaskRepository, l logge
 
 func (s *SmsService) Send(ctx context.Context, tplId string, args []string, numbers ...string) error {
 	// 检查是否跳过异步检查，如果设置了跳过异步，则直接同步发送，只在转异步的 AsyncSend 设置了，避免洋葱导致的循环异步
-	if skipAsyncCheck, _ := ctx.Value("skipAsyncCheck").(bool); skipAsyncCheck {
+	if skipAsyncCheck, _ := ctx.Value(sms.SkipAsyncCheck).(bool); skipAsyncCheck {
 		return s.directSend(ctx, tplId, args, numbers...)
 	}
 
 	// 检查是否触发了限流
 	asyncModeCheck := false
-	if value, ok := ctx.Value("asyncMode").(bool); ok {
+	if value, ok := ctx.Value(sms.AsyncMode).(bool); ok {
 		// 触发限流，asyncModeCheck = true
 		asyncModeCheck = value
 	}
@@ -223,8 +222,8 @@ func (s *SmsService) AsyncSend(as async.Sms) error {
 
 	// 执行异步发送逻辑
 	fmt.Println("异步发送短信")
-	ctx = auth.WithSkipAuth(ctx, true)
-	ctx = WithSkipAsyncCheck(ctx, true)
+	ctx = sms.WithSkipAuth(ctx, true)
+	ctx = sms.WithSkipAsyncCheck(ctx, true)
 	err := s.svc.Send(ctx, as.TplId, as.Args, as.Numbers...)
 
 	// 计算响应时间并更新 responseTimes
@@ -364,9 +363,4 @@ func checkIncreaseRate(responseTimes []time.Duration) bool {
 	// 这里检查是否至少增加了40%
 	increaseRate := float64(avgRecent-avgPrevious) / float64(avgPrevious)
 	return increaseRate > 0.4
-}
-
-// WithSkipAsyncCheck 创建一个新的context，包含一个标记以跳过异步检查。
-func WithSkipAsyncCheck(ctx context.Context, skip bool) context.Context {
-	return context.WithValue(ctx, "skipAsyncCheck", skip)
 }

@@ -23,7 +23,7 @@ type SMSClaims struct {
 }
 
 func (s *SMSService) Send(ctx context.Context, tplToken string, args []string, numbers ...string) error {
-	if skipAuth, ok := ctx.Value("skipAuth").(bool); ok && skipAuth {
+	if skipAuth, ok := ctx.Value(sms.SkipAuth).(bool); ok && skipAuth {
 		return s.svc.Send(ctx, tplToken, args, numbers...)
 	}
 
@@ -36,9 +36,4 @@ func (s *SMSService) Send(ctx context.Context, tplToken string, args []string, n
 	}
 
 	return s.svc.Send(ctx, claims.Tpl, args, numbers...)
-}
-
-// WithSkipAuth 创建一个新的 context，包含一个标志以跳过 JWT 鉴权。
-func WithSkipAuth(ctx context.Context, skip bool) context.Context {
-	return context.WithValue(ctx, "skipAuth", skip)
 }
